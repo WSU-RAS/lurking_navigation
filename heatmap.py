@@ -1,0 +1,162 @@
+
+# language imports
+import sys
+
+# library imports
+import matplotlib.pyplot as plt
+import numpy as np
+
+# custom imports
+import yulias_thing
+
+
+def get_sensor_map():
+    """ get sensor map
+
+    builds and returns a hardcoded dictionary mapping sensor names to their locations in Kyoto
+
+    key: string, sensor name
+    value: tuple, (x, y)
+
+    """
+    return {}
+
+class Heatmap():
+    """ Heatmap class for storing human activity hotness
+
+    Loads smarthome data from a file and uses that to build a heatmap of the area representing
+    human activity
+
+    No public attributes
+
+    """
+    def __init__(self):
+        # map of points, key: (x, y) value: heat value
+        self.point_map = {}
+
+        # constants
+        self.map_width = 6.0 # in meters
+        self.map_height = 9.0 # in meters
+        self.map_resolution = 0.125
+
+    def load_from_file(self, filepath):
+        """ load heatmap from filepath
+
+        get all the data out from a file and load into our heatmap
+        then normalize our heatmap.
+
+        """
+        # open the file
+        data_file = open(filepath, "r")
+
+        # load the sensor map
+        sensor_map = get_sensor_map()
+
+        # build the heatmap
+        next_point = self._get_next_point(data_file, sensor_map)
+        while next_point is not None:
+            # add to the sensor map
+            if next_point in self.point_map:
+                self.point_map[next_point] += 1
+            else:
+                self.point_map[next_point] = 1
+
+            # get the next point
+            next_point = self._get_next_point(data_file, sensor_map)
+
+        # normalize the heatmap
+        self._normalize_heatmap()
+
+
+    def get_heatmap_array(self):
+        """ get heatmap array
+
+        get the heatmap as a 2d array indicating the hotness at each area.
+        Default resolution will be 1/8th meter squares
+        Default size will be 6m x 9m
+
+        Note that the heatmap will be either normalized or not based on whether _normalize_heatmap has been run.
+
+        """
+        heatmap = [
+                    [0.0 for j in range(int(self.map_height / self.map_resolution))] 
+                    for i in range(int(self.map_width / self.map_resolution))
+                  ]
+
+        # load things into the heatmap
+        for point, value in self.point_map:
+            x_index = int(point[0] / self.map_resolution)
+            y_index = int(point[1] / self.map_resolution)
+
+            heatmap[x_index][y_index] += value
+
+        return heatmap
+
+    def display_heatmap(self):
+        heatmap_array = self.get_heatmap_array()
+        np_heatmap = np.array(heatmap_array)
+        plt.imshow(np_heatmap, cmap='hot', interpolation='nearest')
+        plt.show()
+
+    def _get_next_point(self, file, sensor_map):
+        """ get the next point out of 
+        """
+        while True:
+            next_line = file.readline()
+
+            # check if the file is empty
+            if next_line == False:
+                return None
+
+            data = DataLine(next_line)
+
+            if data.sensor_type == "Control4-Motion" and data.message == "ON":
+                # found a motion sensor trigger
+                point = sensor_map[data.sensor_name]
+                return point
+
+
+    def _normalize_heatmap(self):
+        """ normalize the heatmap
+
+        divide each value of the point_map by the sum of all values.
+
+        """
+        # sum up all the values
+        sum = 0
+        for key, value in self.point_map.iteritems():
+            sum += value
+
+        # divide each entry by the sum
+        for key, value in self.point_map.iteritems():
+            new_value = value / float(sum)
+            self.point_map[key] = new_value
+
+class DataLine():
+    """ Data line
+
+    Processess and stores a line of the datafile.
+    Basically just a container class.
+    Probably not even worth existing.
+
+    """
+    def __init__(self, line):
+        split = line.split()
+
+        self.date = split[0]
+        self.time = split[1]
+        self.sensor_name = split[2]
+        self.message = split[3]
+        self.sensor_type = split[4]
+
+
+if __name__ == "__main__":
+    # get command line arguments
+    data_filepath = sys.argv[1]
+
+    # build the heatmap
+    heatmap = Heatmap()
+    heatmap.load_from_file(data_filepath)
+
+    # display the heatmap
+    heatmap.display_heatmap()
