@@ -1,5 +1,6 @@
 # language imports
 import sys
+import string
 
 # library imports
 import matplotlib.pyplot as plt
@@ -155,7 +156,7 @@ class Heatmap():
                   ]
 
         # load things into the heatmap
-        for point, value in self.point_map:
+        for point, value in self.point_map.iteritems():
             x_index = int(point[0] / self.map_resolution)
             y_index = int(point[1] / self.map_resolution)
 
@@ -167,6 +168,10 @@ class Heatmap():
         heatmap_array = self.get_heatmap_array()
         np_heatmap = np.array(heatmap_array)
         plt.imshow(np_heatmap, cmap='hot', interpolation='nearest')
+
+        axis = plt.gca()
+        axis.set_ylim(axis.get_ylim()[::-1])
+
         plt.show()
 
     def _get_next_point(self, file, sensor_map):
@@ -176,7 +181,7 @@ class Heatmap():
             next_line = file.readline()
 
             # check if the file is empty
-            if next_line == False:
+            if len(next_line) <= 0:
                 return None
 
             data = DataLine(next_line)
@@ -185,7 +190,6 @@ class Heatmap():
                 # found a motion sensor trigger
                 point = sensor_map[data.sensor_name]
                 return point
-
 
     def _normalize_heatmap(self):
         """ normalize the heatmap
@@ -208,7 +212,6 @@ class DataLine():
 
     Processess and stores a line of the datafile.
     Basically just a container class.
-    Probably not even worth existing.
 
     """
     def __init__(self, line):
