@@ -1,3 +1,6 @@
+# constructs a heatmap of where the human is over time given smarthome data 
+#   and uses that heatmap to create an MSE map that
+
 # language imports
 import sys
 import string
@@ -66,7 +69,8 @@ def get_ignored_sensors():
     return ignored_sensors
 
 class Heatmap():
-    """ Heatmap class for storing human activity hotness
+    """ Heatmap class for creating a grid of the smarthome, where each spot 
+    contains the likelihood that a human will be there.
 
     Loads smarthome data from a file and uses that to build a heatmap of the area representing
     human activity
@@ -109,13 +113,8 @@ class Heatmap():
             # get the next point
             next_point = self._get_next_point(data_file, sensor_map, ignored_sensors)
 
-        print self.point_map
-
         # normalize the heatmap
         self._normalize_heatmap()
-
-        print self.point_map
-
 
     def get_heatmap_array(self):
         """ get heatmap array
@@ -172,11 +171,6 @@ class Heatmap():
         divide each value of the point_map by the sum of all values.
 
         """
-
-
-
-        # find largest and divide by it 
-
         # sum up all the values
         sum = 0
         for key, value in self.point_map.iteritems():
@@ -203,14 +197,13 @@ class DataLine():
         self.message = split[3]
         self.sensor_type = split[4]
 
-
 if __name__ == "__main__":
     # get command line arguments
     data_filepath = sys.argv[1]
 
-    # build the heatmap
+    # build the heatmap and mse map
     heatmap = Heatmap()
-    heatmap.load_from_file(data_filepath)
 
+    # heatmap.load_from_file(data_filepath)
     # display the heatmap
     heatmap.display_heatmap()

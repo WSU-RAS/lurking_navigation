@@ -1,4 +1,4 @@
-
+# Constructs a slam map 
 
 import numpy as np
 import matplotlib.pyplot as plt
