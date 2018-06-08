@@ -11,6 +11,9 @@ import numpy as np
 # Constants
 ARBITRARY_LARGE_NUMBER = 9999
 
+# please make this not hardcoded, thanks
+NUMBER_OF_SENSORS = 34
+
 from heatmap import Heatmap
 
 class MSEmap():
@@ -25,11 +28,16 @@ class MSEmap():
         self.map_resolution = 0.125
         self.smallest_point = ARBITRARY_LARGE_NUMBER
         self.heatmap = Heatmap()
+        self.sensors_list = [[]]
 
     def get_heatmap(self, data_filepath):
         self.heatmap.load_from_file(data_filepath)
         self.heatmap = self.heatmap.get_heatmap_array()
-        print self.heatmap
+
+    def get_sensors_from_heatmap(self, heatmap):
+        # for x,y in heatmap: 
+        # non-zero? record normalized value and x,y coords
+        return 42
 
     def get_mse_map_array(self):
         """ 
@@ -43,9 +51,24 @@ class MSEmap():
         # load things into the mse_map
         for x_index in range(len(mse_map)):
             for y_index in range(len(mse_map)): 
-                mse_map[x_index][y_index] += 1
+                mse_map[x_index][y_index] = self.calculate_mse_at_point()
 
         return mse_map
+
+    def calculate_mse_at_point(self):
+        # for every sensor in the sensor array: (pull from heatmap)
+        # add to the total:
+        # (get_distance)^2 * (weight of sensor)
+        return 42
+
+    def get_distance_to_sensor(self, mse_map_point, sensor_name):
+        # convert gridpoint to meters
+        # get (x,y) of sensor 
+        # find difference
+        return 42
+
+    def get_weight_of_sensor(self, sensor_name):
+        return 42
 
     def display_mse_map(self):
         mse_map_array = self.get_mse_map_array()
@@ -53,7 +76,7 @@ class MSEmap():
         axis = plt.gca()
         plt.imshow(np_mse_map, cmap='hot', interpolation='nearest')
         axis.set_ylim(axis.get_ylim()[::-1])
-        plt.show()
+        # plt.show()
 
 if __name__ == "__main__":
     # get command line arguments
