@@ -52,46 +52,18 @@ def get_sensor_map():
     sensor_map["T101"] = (0.9375,8.40)
     sensor_map["D001"] = (0.9375,8.50)
 
-    sensor_map["M041"] = (-1,-1)
-    sensor_map["M032"] = (-1,-1)
-    sensor_map["M039"] = (-1,-1)
-    sensor_map["M027"] = (-1,-1)
-    sensor_map["M045"] = (-1,-1)
-    sensor_map["M037"] = (-1,-1)
-    sensor_map["M028"] = (-1,-1) 
-    sensor_map["M030"] = (-1,-1)
-    sensor_map["M057"] = (-1,-1)
-    sensor_map["M029"] = (-1,-1)
-    sensor_map["M031"] = (-1,-1)
-    sensor_map["M036"] = (-1,-1)
-    sensor_map["M033"] = (-1,-1)
-    sensor_map["M034"] = (-1,-1)
-    sensor_map["M038"] = (-1,-1)
-    sensor_map["M040"] = (-1,-1)
-    sensor_map["M055"] = (-1,-1) 
-    sensor_map["M054"] = (-1,-1)
-    sensor_map["M056"] = (-1,-1)
-    sensor_map["M042"] = (-1,-1)
-    sensor_map["M043"] = (-1,-1)
-    sensor_map["M035"] = (-1,-1)
-    sensor_map["M044"] = (-1,-1)
-    sensor_map["M050"] = (-1,-1)
-    sensor_map["M049"] = (-1,-1)
-    sensor_map["M046"] = (-1,-1)
-    sensor_map["M048"] = (-1,-1)
-    sensor_map["M047"] = (-1,-1)
-    sensor_map["M052"] = (-1,-1)
-    sensor_map["M058"] = (-1,-1)
-    sensor_map["M059"] = (-1,-1)
-    sensor_map["M060"] = (-1,-1)
-    sensor_map["MA201"] = (-1,-1)
-    sensor_map["MA202"] = (-1,-1)
-    sensor_map["MA203"] = (-1,-1)
-    sensor_map["MA204"] = (-1,-1)
-    sensor_map["MA205"] = (-1,-1)
-    sensor_map["MA206"] = (-1,-1)
-    sensor_map["MA207"] = (-1,-1)
     return sensor_map
+
+def get_ignored_sensors():
+    """ get ignored sensors
+
+    returns a list of all the sensors on the 2nd floor
+
+    """
+    # Values in the following list are on the 2nd floor and will be ignored
+    ignored_sensors = ["M041","M032","M039","M027","M045","M037","M028","M030","M057","M029","M031","M036","M033","M034","M038","M040","M055","M054","M056","M042","M043","M035","M044","M050","M049","M046","M048","M047","M052","M058","M059","M060","MA201","MA202","MA203","MA204","MA205","MA206","MA207"]
+
+    return ignored_sensors
 
 class Heatmap():
     """ Heatmap class for storing human activity hotness
@@ -123,9 +95,10 @@ class Heatmap():
 
         # load the sensor map
         sensor_map = get_sensor_map()
+        ignored_sensors = get_ignored_sensors()
 
         # build the heatmap
-        next_point = self._get_next_point(data_file, sensor_map)
+        next_point = self._get_next_point(data_file, sensor_map, ignored_sensors)
         while next_point is not None:
             # add to the sensor map
             if next_point in self.point_map:
@@ -134,10 +107,14 @@ class Heatmap():
                 self.point_map[next_point] = 1
 
             # get the next point
-            next_point = self._get_next_point(data_file, sensor_map)
+            next_point = self._get_next_point(data_file, sensor_map, ignored_sensors)
+
+        print self.point_map
 
         # normalize the heatmap
         self._normalize_heatmap()
+
+        print self.point_map
 
 
     def get_heatmap_array(self):
@@ -167,14 +144,12 @@ class Heatmap():
     def display_heatmap(self):
         heatmap_array = self.get_heatmap_array()
         np_heatmap = np.array(heatmap_array)
-        plt.imshow(np_heatmap, cmap='hot', interpolation='nearest')
-
         axis = plt.gca()
+        plt.imshow(np_heatmap, cmap='hot', interpolation='nearest')
         axis.set_ylim(axis.get_ylim()[::-1])
-
         plt.show()
 
-    def _get_next_point(self, file, sensor_map):
+    def _get_next_point(self, file, sensor_map, ignored_sensors):
         """ get the next point out of 
         """
         while True:
@@ -186,8 +161,8 @@ class Heatmap():
 
             data = DataLine(next_line)
 
-            if data.sensor_type == "Control4-Motion" and data.message == "ON":
-                # found a motion sensor trigger
+            if data.sensor_type == "Control4-Motion" and data.message == "ON" and data.sensor_name not in ignored_sensors:
+                # found a motion sensor trigger on the 1st floor
                 point = sensor_map[data.sensor_name]
                 return point
 
@@ -197,6 +172,11 @@ class Heatmap():
         divide each value of the point_map by the sum of all values.
 
         """
+
+
+
+        # find largest and divide by it 
+
         # sum up all the values
         sum = 0
         for key, value in self.point_map.iteritems():
