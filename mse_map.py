@@ -11,9 +11,6 @@ import numpy as np
 # Constants
 ARBITRARY_LARGE_NUMBER = 9999
 
-# please make this not hardcoded, thanks
-NUMBER_OF_SENSORS = 34
-
 from heatmap import Heatmap
 
 class MSEmap():
@@ -26,6 +23,7 @@ class MSEmap():
         self.map_width = 6.0 # in meters
         self.map_height = 9.0 # in meters
         self.map_resolution = 0.125
+        self.number_of_sensors = 0
         self.smallest_point = ARBITRARY_LARGE_NUMBER
         self.heatmap = Heatmap()
         self.sensors_list = [[]]
@@ -34,9 +32,18 @@ class MSEmap():
         self.heatmap.load_from_file(data_filepath)
         self.heatmap = self.heatmap.get_heatmap_array()
 
-    def get_sensors_from_heatmap(self, heatmap):
-        # for x,y in heatmap: 
-        # non-zero? record normalized value and x,y coords
+    def get_sensors_from_heatmap(self):
+        # convert to a numpy array so we can use numpy tools 
+        heatmap_array = np.array(self.heatmap)
+
+        for x_index in range(heatmap_array.shape[0]):
+            for y_index in range(heatmap_array.shape[1]): 
+                if heatmap_array[x_index][y_index] != 0:
+                    self.number_of_sensors += 1
+                    #self.sensors_list[][] = heatmap_array[x_index][y_index]
+                    #self.sensors_list[][] = 
+
+                    print self.sensors_list
         return 42
 
     def get_mse_map_array(self):
@@ -85,6 +92,7 @@ if __name__ == "__main__":
     # build the heatmap and mse map
     mse_map = MSEmap() 
     mse_map.get_heatmap(data_filepath)
+    mse_map.get_sensors_from_heatmap()
 
     # display the mse map 
     mse_map.display_mse_map()
