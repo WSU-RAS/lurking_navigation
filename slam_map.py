@@ -1,6 +1,8 @@
 # Constructs a slam map 
 
 import numpy as np
+import scipy
+from scipy import ndimage
 import matplotlib.pyplot as plt
 
 class SlamMap():
@@ -18,31 +20,69 @@ class SlamMap():
         raw_data = RawSlamData(data_filepath)
         self.resolution = raw_data.resolution
 
+        # transform slam map so that it has the same origin as our heatmap
+        self.origin = self._get_new_origin()
+
         # fit into 2d array
         self.map = self._process_raw_data(raw_data)
 
-        # transform slam map so that it has the same origin as our heatmap
-        self.origin = self._get_new_origin(raw_data)
 
     def _process_raw_data(self, raw_data):
         """ process raw data map
 
-        Reshape the raw map into a 2d array.
+        Reshape the raw map into a 2d array then rotate around the origin.
         numpy makes this way too easy.
 
         """
+
+        # load the map as a 2d array
         np_map = np.array(raw_data.data)
         np_map = np.reshape(np_map, (raw_data.width, raw_data.height), order='F')
         np_map = np.flip(np_map, 0) # flip y axis
+
+
+        # rotate the map around the origin
+        origin = self.origin
+        padX = [np_map.shape[1] - origin[0], origin[0]]
+        padY = [np_map.shape[0] - origin[1], origin[1]]
+        np_map_padded = np.pad(np_map, [padY, padX], 'constant')
+
+        np_map_rotated = ndimage.rotate(np_map_padded, -4, reshape=False)
+
+        np_map_final = np_map_rotated[padY[0] : -padY[1], padX[0] : -padX[1]]
+        np_map = np_map_final
+
+        # clip uncertain values
+        full = np.full_like(np_map, 70)
+        np_map = np.maximum(np_map, full)
+
+        # scale to between 0 and 1
+        np_map = np.subtract(np_map, full)
+        amax = np.amax(np_map)
+        np_map = np.true_divide(np_map, amax)
+
+        # downsample to obtain the same resolution as the heatmap
+        # transform origin
+        heatmap_resolution = 0.125
+        slam_resolution = self.resolution
+        origin_meters = (origin[0] * self.resolution, origin[1] * self.resolution)
+        origin = (origin_meters[0] / heatmap_resolution, origin_meters[1] / heatmap_resolution)
+
+        # downsample map
+        np_map = scipy.misc.imresize(np_map, slam_resolution / heatmap_resolution)
+
         return np_map
 
-    def _get_new_origin(self, raw_data):
-        slam_origin = raw_data.origin
+    def _get_new_origin(self):
+        """
 
+        get the origin of the top left corner of the apartment in array values
+
+        """
         # hardcoded origin values for Kyoto
         # TODO move to param file or something
-        x = slam_origin[0] - 1.05
-        y = slam_origin[1] - 0.904
+        x = 36
+        y = 195
 
         origin = (x, y)
         return origin
