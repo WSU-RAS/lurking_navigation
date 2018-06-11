@@ -204,6 +204,5 @@ if __name__ == "__main__":
     # build the heatmap and mse map
     heatmap = Heatmap()
 
-    # heatmap.load_from_file(data_filepath)
-    # display the heatmap
+    heatmap.load_from_file(data_filepath)
     heatmap.display_heatmap()
