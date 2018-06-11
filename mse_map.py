@@ -64,8 +64,8 @@ class MSEmap():
 
     def get_distance_to_sensor(self, sensor, grid_x_index, grid_y_index):
         # get (x,y) of sensor 
-        sensor_x_index = int(sensor[0] / self.map_resolution)
-        sensor_y_index = int(sensor[1] / self.map_resolution)
+        sensor_x_index = (sensor[0] / self.map_resolution)
+        sensor_y_index = (sensor[1] / self.map_resolution)
 
         # find difference
         x_difference = abs(sensor_x_index - grid_x_index)
@@ -82,7 +82,7 @@ class MSEmap():
         mse_map_array = self.get_mse_map_array()
         np_mse_map = np.array(mse_map_array)
         axis = plt.gca()
-        plt.imshow(np_mse_map, cmap='hot', interpolation=None)
+        plt.imshow(np.transpose(np_mse_map), cmap='hot', interpolation=None)
         axis.set_ylim(axis.get_ylim()[::-1])
         plt.show()
 
