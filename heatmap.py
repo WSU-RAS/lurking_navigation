@@ -83,8 +83,8 @@ class Heatmap():
         self.point_map = {}
 
         # constants
-        self.map_width = 6.0 # in meters
-        self.map_height = 9.0 # in meters
+        self.map_width = 9.0 # in meters
+        self.map_height = 6.0 # in meters
         self.map_resolution = 0.125
 
     def load_from_file(self, filepath):

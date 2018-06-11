@@ -3,6 +3,7 @@
 # language imports
 import sys
 import string
+import math
 
 # library imports
 import matplotlib.pyplot as plt
@@ -27,6 +28,7 @@ class MSEmap():
         self.smallest_point = ARBITRARY_LARGE_NUMBER
         self.heatmap = Heatmap()
         self.point_map = self.heatmap.point_map
+        self.map_resolution = self.heatmap.map_resolution
 
     def get_heatmap(self, data_filepath):
         self.heatmap.load_from_file(data_filepath)
@@ -43,28 +45,44 @@ class MSEmap():
 
         # load things into the mse_map
         for x_index in range(len(mse_map)):
-            for y_index in range(len(mse_map)): 
-                mse_map[x_index][y_index] = self.calculate_mse_at_point()
+            for y_index in range(len(mse_map[0])): 
+                mse_map[x_index][y_index] = self.calculate_mse_at_point(x_index, y_index)
 
         return mse_map
 
-    def calculate_mse_at_point(self):
+    def calculate_mse_at_point(self, x_index, y_index):
         # for every sensor in the sensor array: (pull from pointmap)
         # add to the total:
         # (get_distance)^2 * (weight of sensor)
 
+        mse_at_point = 0
+
         for sensor in self.point_map:
-            print sensor 
+            distance_to_sensor = self.get_distance_to_sensor(sensor, x_index, y_index)
+            weight_of_sensor = self.get_weight_of_sensor(sensor)
 
-        return 42
+            mse_at_point += (pow(distance_to_sensor, 2) * weight_of_sensor) 
 
-    def get_distance_to_sensor(self, mse_map_point, sensor_name):
+        print mse_at_point
+        return mse_at_point
+
+    def get_distance_to_sensor(self, sensor, grid_x_index, grid_y_index):
         # get (x,y) of sensor 
-        # find difference
-        return 42
+        sensor_x_index = int(sensor[0] / self.map_resolution)
+        sensor_y_index = int(sensor[1] / self.map_resolution)
 
-    def get_weight_of_sensor(self, sensor_name):
-        return 42
+        # find difference
+        x_difference = abs(sensor_x_index - grid_x_index)
+        y_difference = abs(sensor_y_index - grid_y_index)
+
+        distance = math.sqrt(pow(x_difference, 2) + pow(y_difference, 2))
+
+        return distance
+
+    def get_weight_of_sensor(self, sensor):
+        x_index = int(sensor[0] / self.map_resolution)
+        y_index = int(sensor[1] / self.map_resolution)
+        return self.heatmap[x_index][y_index]
 
     def display_mse_map(self):
         mse_map_array = self.get_mse_map_array()
