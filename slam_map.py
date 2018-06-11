@@ -38,19 +38,10 @@ class SlamMap():
         # load the map as a 2d array
         np_map = np.array(raw_data.data)
         np_map = np.reshape(np_map, (raw_data.width, raw_data.height), order='F')
-        np_map = np.flip(np_map, 0) # flip y axis
+        
+        # take the transpose so our dimensions line up with how we defined them
+        np_map = np.transpose(np_map)
 
-
-        # rotate the map around the origin
-        origin = self.origin
-        padX = [np_map.shape[1] - origin[0], origin[0]]
-        padY = [np_map.shape[0] - origin[1], origin[1]]
-        np_map_padded = np.pad(np_map, [padY, padX], 'constant')
-
-        np_map_rotated = ndimage.rotate(np_map_padded, -4, reshape=False)
-
-        np_map_final = np_map_rotated[padY[0] : -padY[1], padX[0] : -padX[1]]
-        np_map = np_map_final
 
         # clip uncertain values
         full = np.full_like(np_map, 70)
@@ -65,11 +56,20 @@ class SlamMap():
         # transform origin
         heatmap_resolution = 0.125
         slam_resolution = self.resolution
-        origin_meters = (origin[0] * self.resolution, origin[1] * self.resolution)
-        origin = (origin_meters[0] / heatmap_resolution, origin_meters[1] / heatmap_resolution)
 
         # downsample map
         np_map = scipy.misc.imresize(np_map, slam_resolution / heatmap_resolution)
+
+        # rotate the map around the origin
+        origin = self.origin
+        padX = [np_map.shape[1] - origin[0], origin[0]]
+        padY = [np_map.shape[0] - origin[1], origin[1]]
+        np_map_padded = np.pad(np_map, [padY, padX], 'constant')
+
+        np_map_rotated = ndimage.rotate(np_map_padded, -4, reshape=False)
+
+        np_map_final = np_map_rotated[padY[0] : -padY[1], padX[0] : -padX[1]]
+        np_map = np_map_final
 
         return np_map
 
@@ -81,8 +81,8 @@ class SlamMap():
         """
         # hardcoded origin values for Kyoto
         # TODO move to param file or something
-        x = 36
-        y = 195
+        x = 16
+        y = 13
 
         origin = (x, y)
         return origin
