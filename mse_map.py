@@ -26,25 +26,11 @@ class MSEmap():
         self.number_of_sensors = 0
         self.smallest_point = ARBITRARY_LARGE_NUMBER
         self.heatmap = Heatmap()
-        self.sensors_list = [[]]
+        self.point_map = self.heatmap.point_map
 
     def get_heatmap(self, data_filepath):
         self.heatmap.load_from_file(data_filepath)
         self.heatmap = self.heatmap.get_heatmap_array()
-
-    def get_sensors_from_heatmap(self):
-        # convert to a numpy array so we can use numpy tools 
-        heatmap_array = np.array(self.heatmap)
-
-        for x_index in range(heatmap_array.shape[0]):
-            for y_index in range(heatmap_array.shape[1]): 
-                if heatmap_array[x_index][y_index] != 0:
-                    self.number_of_sensors += 1
-                    #self.sensors_list[][] = heatmap_array[x_index][y_index]
-                    #self.sensors_list[][] = 
-
-                    print self.sensors_list
-        return 42
 
     def get_mse_map_array(self):
         """ 
@@ -63,13 +49,16 @@ class MSEmap():
         return mse_map
 
     def calculate_mse_at_point(self):
-        # for every sensor in the sensor array: (pull from heatmap)
+        # for every sensor in the sensor array: (pull from pointmap)
         # add to the total:
         # (get_distance)^2 * (weight of sensor)
+
+        for sensor in self.point_map:
+            print sensor 
+
         return 42
 
     def get_distance_to_sensor(self, mse_map_point, sensor_name):
-        # convert gridpoint to meters
         # get (x,y) of sensor 
         # find difference
         return 42
@@ -92,7 +81,6 @@ if __name__ == "__main__":
     # build the heatmap and mse map
     mse_map = MSEmap() 
     mse_map.get_heatmap(data_filepath)
-    mse_map.get_sensors_from_heatmap()
 
     # display the mse map 
     mse_map.display_mse_map()
