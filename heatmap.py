@@ -19,41 +19,41 @@ def get_sensor_map():
 
     """
     sensor_map = {}
-    sensor_map["D002"] = (0.1125,3.625)
-    sensor_map["T102"] = (0.1125,3.625)
-    sensor_map["M004"] = (0.6875,0.875)
-    sensor_map["M005"] = (0.6875,2.0625)
-    sensor_map["M011"] = (0.6875,3.3125)
-    sensor_map["M012"] = (0.6875,4.525)
-    sensor_map["M003"] = (1.9375,0.875)
-    sensor_map["M006"] = (1.9375,2.0625)
-    sensor_map["M010"] = (1.9375,3.3125)
-    sensor_map["M013"] = (1.9375,4.525)
-    sensor_map["T001"] = (1.9375,2.0625)
-    sensor_map["M002"] = (3.125,0.875)
-    sensor_map["M007"] = (3.125,2.0625)
-    sensor_map["M009"] = (3.125,3.3125)
-    sensor_map["M014"] = (3.12,4.525)
-    sensor_map["D013"] = (3.5,0.875)
-    sensor_map["M008"] = (3.5,2.75)
-    sensor_map["M001"] = (4.0,1.5625)
-    sensor_map["M015"] = (4.0,4.1875)
-    sensor_map["M023"] = (5.15,1.5625)
-    sensor_map["M053"] = (5.15,4.1875)
-    sensor_map["M016"] = (5.15,4.1875)
-    sensor_map["M022"] = (5.375,1.5625)
-    sensor_map["M017"] = (5.65,4.125)
-    sensor_map["T002"] = (5.65,4.125)
-    sensor_map["M021"] = (6.5375,1.5625)
-    sensor_map["M019"] = (6.5375,2.8125)
-    sensor_map["M018"] = (6.5375,4.125)
-    sensor_map["M026"] = (6.625,0.6)
-    sensor_map["M020"] = (7.275,2.8125)
-    sensor_map["M051"] = (7.8125,4.0625)
-    sensor_map["M025"] = (7.6875,0.6)
-    sensor_map["M024"] = (7.5625,1.5)
-    sensor_map["T101"] = (8.40,0.9375)
-    sensor_map["D001"] = (8.50,0.9375)
+    sensor_map["D002"] = (0.1125, 3.625)
+    sensor_map["T102"] = (0.1125, 3.625)
+    sensor_map["M004"] = (0.6875, 0.875)
+    sensor_map["M005"] = (0.6875, 2.0625)
+    sensor_map["M011"] = (0.6875, 3.3125)
+    sensor_map["M012"] = (0.6875, 4.525)
+    sensor_map["M003"] = (1.9375, 0.875)
+    sensor_map["M006"] = (1.9375, 2.0625)
+    sensor_map["M010"] = (1.9375, 3.3125)
+    sensor_map["M013"] = (1.9375, 4.525)
+    sensor_map["T001"] = (1.9375, 2.0625)
+    sensor_map["M002"] = (3.125, 0.875)
+    sensor_map["M007"] = (3.125, 2.0625)
+    sensor_map["M009"] = (3.125, 3.3125)
+    sensor_map["M014"] = (3.12, 4.525)
+    sensor_map["D013"] = (3.5, 0.875)
+    sensor_map["M008"] = (3.5, 2.75)
+    sensor_map["M001"] = (4.0, 1.5625)
+    sensor_map["M015"] = (4.0, 4.1875)
+    sensor_map["M023"] = (5.15, 1.5625)
+    sensor_map["M053"] = (5.15, 4.1875)
+    sensor_map["M016"] = (5.15, 4.1875)
+    sensor_map["M022"] = (5.375, 1.5625)
+    sensor_map["M017"] = (5.65, 4.125)
+    sensor_map["T002"] = (5.65, 4.125)
+    sensor_map["M021"] = (6.5375, 1.5625)
+    sensor_map["M019"] = (6.5375, 2.8125)
+    sensor_map["M018"] = (6.5375, 4.125)
+    sensor_map["M026"] = (6.625, 0.6)
+    sensor_map["M020"] = (7.275, 2.8125)
+    sensor_map["M051"] = (7.8125, 4.0625)
+    sensor_map["M025"] = (7.6875, 0.6)
+    sensor_map["M024"] = (7.5625, 1.5)
+    sensor_map["T101"] = (8.40, 0.9375)
+    sensor_map["D001"] = (8.50, 0.9375)
 
     return sensor_map
 
@@ -190,7 +190,16 @@ class Heatmap():
         heatmap_array = self.get_heatmap_array()
         np_heatmap = np.array(heatmap_array)
         axis = plt.gca()
-        plt.imshow(np_heatmap, cmap='hot', interpolation='nearest')
+
+        # display heatmap
+        plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
+
+        # display sensor text
+        for sensor_name, point in get_sensor_map().iteritems():
+            x = int(point[0] / self.map_resolution) + 1
+            y = int(point[1] / self.map_resolution) + 1
+            plt.text(x, y, sensor_name, bbox=dict(facecolor='white', alpha=0.8))
+
         axis.set_ylim(axis.get_ylim()[::-1])
         plt.show()
 
@@ -251,4 +260,5 @@ if __name__ == "__main__":
     heatmap = Heatmap()
 
     heatmap.load_from_file(data_filepath)
+    # display the heatmap
     heatmap.display_heatmap()
