@@ -3,7 +3,7 @@
 
 # language imports
 import sys
-import string
+import math
 
 # library imports
 import matplotlib.pyplot as plt
@@ -86,6 +86,8 @@ class Heatmap():
         self.map_width = 9.0 # in meters
         self.map_height = 6.0 # in meters
         self.map_resolution = 0.125
+        self.x_offset = 0 # x offset in map points
+        self.y_offset = 0 # y offset in map points
 
     def load_from_file(self, filepath):
         """ load heatmap from filepath
@@ -116,6 +118,50 @@ class Heatmap():
         # normalize the heatmap
         self._normalize_heatmap()
 
+    def set_offset(self, offset_x, offset_y):
+        """ Set the origin offset of the heatmap
+
+        Adjusts all the points in the point_map to reflect the new offset.
+        Adjusts the map width and height to fit the new offset.
+        Note that this function handles adjusting the offset multiple times
+
+        inputs:
+            offset_x - x offset from 0,0 (which should be the top left corner of the map) 
+                       in map points (NOT meters)
+            offset_y - y offset from 0,0 in map points
+
+        returns:
+            None
+
+        potential issues:
+            adjustment of map dimensions and points may not be reliable after multiple offsets
+                due to floating point precision
+        
+        """
+        # setup variables
+        old_x_offset = self.x_offset
+        old_y_offset = self.y_offset
+        new_x_offset = offset_x
+        new_y_offset = offset_y
+
+        self.x_offset = offset_x
+        self.y_offset = offset_y
+
+        # adjust pointmap
+        new_point_map = {}
+        for point, value in self.point_map.iteritems():
+            new_x = point[0] + (new_x_offset - old_x_offset) * self.map_resolution
+            new_y = point[1] + (new_y_offset - old_y_offset) * self.map_resolution
+            new_point = (new_x, new_y)
+
+            new_point_map[new_point] = value
+
+        self.point_map = new_point_map
+
+        # adjust map dimensions
+        self.map_width += (new_x_offset - old_x_offset) * self.map_resolution
+        self.map_height += (new_y_offset - old_y_offset) * self.map_resolution
+
     def get_heatmap_array(self):
         """ get heatmap array
 
@@ -127,8 +173,8 @@ class Heatmap():
 
         """
         heatmap = [
-                    [0.0 for j in range(int(self.map_height / self.map_resolution))] 
-                    for i in range(int(self.map_width / self.map_resolution))
+                    [0.0 for j in range(int(math.ceil(self.map_height / self.map_resolution)))] 
+                    for i in range(int(math.ceil(self.map_width / self.map_resolution)))
                   ]
 
         # load things into the heatmap
