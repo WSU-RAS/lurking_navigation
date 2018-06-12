@@ -23,7 +23,7 @@ def main():
     # plot the slam map
     heatmap = heatmap.get_heatmap_array()
     plt.imshow(np.transpose(heatmap), cmap='hot', interpolation='nearest')
-    plt.imshow(slam_map.map, cmap=get_custom_colormap(), interpolation='nearest')
+    plt.imshow(np.transpose(slam_map.map), cmap=get_custom_colormap(), interpolation='nearest')
 
     # flip y axis
     axis = plt.gca()

@@ -38,13 +38,9 @@ class SlamMap():
         # load the map as a 2d array
         np_map = np.array(raw_data.data)
         np_map = np.reshape(np_map, (raw_data.width, raw_data.height), order='F')
-        
-        # take the transpose so our dimensions line up with how we defined them
-        np_map = np.transpose(np_map)
-
 
         # clip uncertain values
-        full = np.full_like(np_map, 70)
+        full = np.full_like(np_map, 30)
         np_map = np.maximum(np_map, full)
 
         # scale to between 0 and 1
@@ -66,7 +62,7 @@ class SlamMap():
         padY = [np_map.shape[0] - origin[1], origin[1]]
         np_map_padded = np.pad(np_map, [padY, padX], 'constant')
 
-        np_map_rotated = ndimage.rotate(np_map_padded, -4, reshape=False)
+        np_map_rotated = ndimage.rotate(np_map_padded, 4, reshape=False)
 
         np_map_final = np_map_rotated[padY[0] : -padY[1], padX[0] : -padX[1]]
         np_map = np_map_final
