@@ -17,20 +17,16 @@ class WeightedAverage():
         Given a heatmap, returns a point on the grid corresponding to the 
         average location of the occupant over a certain period of time 
     """
-    def __init__(self):
+    def __init__(self, smarthome_data_filepath):
         # constants
         self.map_width = 9.0 # in meters
         self.map_height = 6.0 # in meters
         self.map_resolution = 0.125
         self.number_of_sensors = 0
-        self.heatmap = Heatmap()
+        self.heatmap = Heatmap(smarthome_data_filepath)
         self.point_map = self.heatmap.point_map
         self.map_resolution = self.heatmap.map_resolution
         self.result = (0,0)
-
-    def get_heatmap(self, data_filepath):
-        self.heatmap.load_from_file(data_filepath)
-        #self.heatmap = self.heatmap.get_heatmap_array()
 
     def get_weighted_average_point(self):
         x_average = 0
@@ -46,6 +42,8 @@ class WeightedAverage():
         weighted_average_point = (x_average, y_average)
         self.result = weighted_average_point
 
+        return weighted_average_point
+
     def display_all(self):
         heatmap_array = self.heatmap.get_heatmap_array()
         np_heatmap = np.array(heatmap_array)
@@ -58,11 +56,9 @@ class WeightedAverage():
 
 if __name__ == "__main__":
     # get command line arguments
-    data_filepath = sys.argv[1]
+    smarthome_data_filepath = sys.argv[1]
 
-    # build the heatmap and mse map
-    weighted_average = WeightedAverage() 
-    weighted_average.get_heatmap(data_filepath)
+    weighted_average = WeightedAverage(smarthome_data_filepath) 
     weighted_average.get_weighted_average_point()
 
     weighted_average.display_all()

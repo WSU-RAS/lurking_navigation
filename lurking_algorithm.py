@@ -11,11 +11,7 @@
 # Given the heatmap and slam map, decides where Ras's charging station should
 # be docked. 
 
-# Step 1: Input files: slam map, sensor map
-# Step 2: Process slam map, create heatmap from sensor map
-# Step 3: Get weighted average using heatmap
 # Step 4: Get path and MSE about that path 
-# Step 5: Set "starting position" of algorithm to result of weighted_average
 # Step 6: Where do we place the charger?
 #         - Stay away from the path 
 #         - Are we in a wall? If so, move until inside of wall facing person
@@ -33,19 +29,26 @@ import numpy as np
 
 from slam_map import SlamMap
 from heatmap import Heatmap
+from weighted_average import WeightedAverage
 
 class ChargerPlacement():
     """
         Decides on a long-term "ideal" landing spot for Ras. 
     """
     def __init__(self, smarthome_data_filepath, slam_map_filepath):
-        self.heatmap = Heatmap(smarthome_data_filepath)
         self.slam_map = SlamMap(slam_map_filepath)
 
+        # a tuple (x,y) showing the average location of our occupant 
+        self.weighted_average_point = WeightedAverage(smarthome_data_filepath).get_weighted_average_point() 
+
     def pick_charger_location(self):
+        if self.check_if_we_are_inside_wall(self.weighted_average_point):
+            print "oh no, we are in a wall"
 
+        return "here"
 
-        return "what about here?"
+    def check_if_we_are_inside_wall(self, point):
+        return True
 
 class LurkingAlgorithm():
     """
