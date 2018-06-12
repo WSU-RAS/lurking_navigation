@@ -4,6 +4,7 @@ import numpy as np
 import scipy
 from scipy import ndimage
 import matplotlib.pyplot as plt
+import sys
 
 class SlamMap():
     """ slam map class
@@ -84,7 +85,7 @@ class SlamMap():
         return origin
 
     def display_as_heatmap(self):
-        plt.imshow(self.map, cmap='hot', interpolation='nearest')
+        plt.imshow(np.transpose(self.map), cmap='hot', interpolation='nearest')
 
         # flip y axis
         axis = plt.gca()
@@ -184,9 +185,11 @@ def get_between(s, first, last):
     except ValueError:
         return ""
 
-
 def main():
-    slam_map = SlamMap("data/kyoto_slam_map.txt")
+    # get command line arguments
+    data_filepath = sys.argv[1]
+
+    slam_map = SlamMap(data_filepath)
     slam_map.display_as_heatmap()
 
 if __name__ == "__main__":

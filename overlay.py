@@ -3,7 +3,7 @@
 Quick program for double checking the slam map and heatmap overlay properly
 
 """
-
+import sys 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -12,12 +12,12 @@ from slam_map import SlamMap
 from heatmap import Heatmap
 
 def main():
-    slam_data_filepath = "data/kyoto_slam_map.txt"
-    heatmap_data_filepath = "data/sensor_data.txt"
+    # get command line arguments        
+    slam_data_filepath = sys.argv[1]
+    smarthome_data_filepath = sys.argv[2]
 
     slam_map = SlamMap(slam_data_filepath)
-    heatmap = Heatmap()
-    heatmap.load_from_file(heatmap_data_filepath)
+    heatmap = Heatmap(smarthome_data_filepath)
     heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
 
     # plot the slam map

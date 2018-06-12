@@ -78,7 +78,7 @@ class Heatmap():
     No public attributes
 
     """
-    def __init__(self):
+    def __init__(self, smarthome_data_filepath):
         # map of points, key: (x, y) value: heat value
         self.point_map = {}
 
@@ -88,6 +88,8 @@ class Heatmap():
         self.map_resolution = 0.125
         self.x_offset = 0 # x offset in map points
         self.y_offset = 0 # y offset in map points
+
+        self.load_from_file(smarthome_data_filepath)
 
     def load_from_file(self, filepath):
         """ load heatmap from filepath
@@ -254,11 +256,10 @@ class DataLine():
 
 if __name__ == "__main__":
     # get command line arguments
-    data_filepath = sys.argv[1]
+    smarthome_data_filepath = sys.argv[1]
 
     # build the heatmap and mse map
-    heatmap = Heatmap()
+    heatmap = Heatmap(smarthome_data_filepath)
 
-    heatmap.load_from_file(data_filepath)
     # display the heatmap
     heatmap.display_heatmap()
