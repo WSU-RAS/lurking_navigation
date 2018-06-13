@@ -84,7 +84,7 @@ class Heatmap():
         # map of points, key: (x, y) value: heat value
         self.point_map = {}
 
-        # constants
+        # map construction variables
         self.map_width = 9.0 # in meters
         self.map_height = 6.0 # in meters
         self.map_resolution = 0.125
