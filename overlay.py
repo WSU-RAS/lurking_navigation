@@ -1,7 +1,5 @@
 """
-
-Quick program for double checking the slam map and heatmap overlay properly
-
+    Double checks that the slam map and heatmap are overlaid properly.
 """
 import sys 
 import numpy as np

@@ -1,5 +1,7 @@
-# constructs a heatmap of where the human is over time given smarthome data 
-#   and uses that heatmap to create an MSE map that
+"""
+    Accepts data collected from a smarthome and creates a normalized heatmap
+    reflecting how often each sensor is triggered. 
+"""
 
 # language imports
 import sys

@@ -1,3 +1,8 @@
+"""
+    Accepts a heatmap and generates a single point that represents the average
+    location of the occupant over a certain period of time. 
+"""
+
 # language imports
 import sys
 import string
@@ -17,13 +22,13 @@ class WeightedAverage():
         Given a heatmap, returns a point on the grid corresponding to the 
         average location of the occupant over a certain period of time 
     """
-    def __init__(self, smarthome_data_filepath):
+    def __init__(self, heatmap):
         # constants
         self.map_width = 9.0 # in meters
         self.map_height = 6.0 # in meters
         self.map_resolution = 0.125
         self.number_of_sensors = 0
-        self.heatmap = Heatmap(smarthome_data_filepath)
+        self.heatmap = heatmap
         self.point_map = self.heatmap.point_map
         self.map_resolution = self.heatmap.map_resolution
         self.result = (0,0)
@@ -53,13 +58,4 @@ class WeightedAverage():
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
         axis.set_ylim(axis.get_ylim()[::-1])
         plt.show()
-
-if __name__ == "__main__":
-    # get command line arguments
-    smarthome_data_filepath = sys.argv[1]
-
-    weighted_average = WeightedAverage(smarthome_data_filepath) 
-    weighted_average.get_weighted_average_point()
-
-    weighted_average.display_all()
 

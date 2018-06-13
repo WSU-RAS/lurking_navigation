@@ -1,4 +1,7 @@
-# Constructs a slam map 
+"""
+    Accepts slam map data and transforms the map to match the heatmap 
+    created in the Heatmap class. 
+"""
 
 import numpy as np
 import scipy
