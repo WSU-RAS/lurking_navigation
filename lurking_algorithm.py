@@ -57,7 +57,7 @@ class ChargerPlacement():
         # (3) Get distance from path until we are (certain distance) from a path 
 
         # (4) Are we inside a wall? Move until we are not in a wall 
-        if self.check_if_inside_wall((30,50)):
+        while self.check_if_inside_wall(selected_point):
             selected_point = self.move_out_of_wall(selected_point)
             print "ugh, a wall"
 
@@ -73,17 +73,21 @@ class ChargerPlacement():
 
     # Returns true if selected point is inside a wall to a certain margin of error
     def check_if_inside_wall(self, point):
-        stuff = self.slam_map.map[point[0]][point[1]]
+        point_inside_wall = False 
 
-        self.slam_map.display_as_heatmap() 
+        #print self.slam_map.map[int(point[0])][int(point[1])]
+        #print point
 
-        print "here we got a", stuff
+        self.slam_map.display_as_heatmap()
 
-        return True
+        if self.slam_map.map[int(point[0])][int(point[1])] != 0:
+            point_inside_wall = True 
+
+        return False
 
     # Moves until we are not inside a wall 
     def move_out_of_wall(self, point):
-        return 42 
+        return point 
 
     # Displays the maps and the suggested charger placement 
     def display_charger_placement(self):
