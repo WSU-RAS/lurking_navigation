@@ -9,6 +9,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from slam_map import SlamMap
 from heatmap import Heatmap
 from path_map import PathMap
+from weighted_average import WeightedAverage
 
 def main():
     # get command line arguments        
@@ -25,16 +26,23 @@ def main():
     # get path map
     path_map = PathMap(heatmap)
 
+    # get the weighted average
+    weighted_average = WeightedAverage(heatmap)
+
     # plot the path map
     path_array = path_map.get_as_array()
-    plt.imshow(np.transpose(path_array), cmap='hot', interpolation='nearest')
+    #plt.imshow(np.transpose(path_array), cmap='hot', interpolation='nearest')
 
     # plot the heatmap
     heatmap = heatmap.get_heatmap_array()
     plt.imshow(np.transpose(heatmap), cmap=get_custom_colormap_blue(), interpolation='nearest')
 
     # plot the slam map
-    plt.imshow(np.transpose(slam_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')
+    #plt.imshow(np.transpose(slam_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')
+
+    # plot the weighted average
+    average_point = weighted_average.get_weighted_average_point()
+    plt.plot(average_point[0], average_point[1], 'go')
 
     # flip y axis
     axis = plt.gca()
