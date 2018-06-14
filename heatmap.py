@@ -11,64 +11,30 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-def get_sensor_map():
+def get_sensor_map(filepath):
     """ get sensor map
 
-    builds and returns a hardcoded dictionary mapping sensor names to their locations in the kyoto smarthome
+    Given a file containing a list of sensors, builds two separate lists:
+         - sensor_map: list of sensors in the smarthome and x-, y- coordinates about
+         the origin
+         - ignored_sensors: found using the IGNORED flag. Sensors that aren't tracked.
 
+    sensor_map dictionary:
     key: string, sensor name
     value: tuple, (x, y)
 
     """
     sensor_map = {}
-    sensor_map["D002"] = (0.1125, 3.625)
-    sensor_map["T102"] = (0.1125, 3.625)
-    sensor_map["M004"] = (0.6875, 0.875)
-    sensor_map["M005"] = (0.6875, 2.0625)
-    sensor_map["M011"] = (0.6875, 3.3125)
-    sensor_map["M012"] = (0.6875, 4.525)
-    sensor_map["M003"] = (1.9375, 0.875)
-    sensor_map["M006"] = (1.9375, 2.0625)
-    sensor_map["M010"] = (1.9375, 3.3125)
-    sensor_map["M013"] = (1.9375, 4.525)
-    sensor_map["T001"] = (1.9375, 2.0625)
-    sensor_map["M002"] = (3.125, 0.875)
-    sensor_map["M007"] = (3.125, 2.0625)
-    sensor_map["M009"] = (3.125, 3.3125)
-    sensor_map["M014"] = (3.12, 4.525)
-    sensor_map["D013"] = (3.5, 0.875)
-    sensor_map["M008"] = (3.5, 2.75)
-    sensor_map["M001"] = (4.0, 1.5625)
-    sensor_map["M015"] = (4.0, 4.1875)
-    sensor_map["M023"] = (5.15, 1.5625)
-    sensor_map["M053"] = (5.15, 4.1875)
-    sensor_map["M016"] = (5.15, 4.1875)
-    sensor_map["M022"] = (5.375, 1.5625)
-    sensor_map["M017"] = (5.65, 4.125)
-    sensor_map["T002"] = (5.65, 4.125)
-    sensor_map["M021"] = (6.5375, 1.5625)
-    sensor_map["M019"] = (6.5375, 2.8125)
-    sensor_map["M018"] = (6.5375, 4.125)
-    sensor_map["M026"] = (6.625, 0.6)
-    sensor_map["M020"] = (7.275, 2.8125)
-    sensor_map["M051"] = (7.8125, 4.0625)
-    sensor_map["M025"] = (7.6875, 0.6)
-    sensor_map["M024"] = (7.5625, 1.5)
-    sensor_map["T101"] = (8.40, 0.9375)
-    sensor_map["D001"] = (8.50, 0.9375)
+    ignored_sensors = {}
 
-    return sensor_map
+    data_file = open(filepath, "r")
 
-def get_ignored_sensors():
-    """ get ignored sensors
 
-    returns a list of all the sensors on the 2nd floor
 
-    """
-    # Values in the following list are on the 2nd floor and will be ignored
-    ignored_sensors = ["M041","M032","M039","M027","M045","M037","M028","M030","M057","M029","M031","M036","M033","M034","M038","M040","M055","M054","M056","M042","M043","M035","M044","M050","M049","M046","M048","M047","M052","M058","M059","M060","MA201","MA202","MA203","MA204","MA205","MA206","MA207"]
+    # sensor_map["D002"] = (0.1125, 3.625)
+    
 
-    return ignored_sensors
+    return sensor_map, ignored_sensors
 
 class Heatmap():
     """ Heatmap class for creating a grid of the smarthome, where each spot 
@@ -91,7 +57,10 @@ class Heatmap():
         self.x_offset = 0 # x offset in map points
         self.y_offset = 0 # y offset in map points
 
-        self.load_from_file(smarthome_data_filepath)
+        # self.load_from_file(smarthome_data_filepath)
+
+        self.sensor_map = {}
+        self.ignored_sensors = {}
 
     def load_from_file(self, filepath):
         """ load heatmap from filepath
@@ -100,15 +69,14 @@ class Heatmap():
         then normalize our heatmap.
 
         """
-        # open the file
-        data_file = open(filepath, "r")
+        # load the sensor map and a list of ignore sensors 
+        self.sensor_map, self.ignored_sensors = get_sensor_map(filepath)
 
-        # load the sensor map
-        sensor_map = get_sensor_map()
-        ignored_sensors = get_ignored_sensors()
+        print self.sensor_map
+        print self.ignored_sensors
 
         # build the heatmap
-        next_point = self._get_next_point(data_file, sensor_map, ignored_sensors)
+        next_point = self._get_next_point(data_file, self.sensor_map, self.ignored_sensors)
         while next_point is not None:
             # add to the sensor map
             if next_point in self.point_map:
@@ -117,7 +85,7 @@ class Heatmap():
                 self.point_map[next_point] = 1
 
             # get the next point
-            next_point = self._get_next_point(data_file, sensor_map, ignored_sensors)
+            next_point = self._get_next_point(data_file, self.sensor_map, self.ignored_sensors)
 
         # normalize the heatmap
         self._normalize_heatmap()
@@ -199,7 +167,7 @@ class Heatmap():
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
 
         # display sensor text
-        for sensor_name, point in get_sensor_map().iteritems():
+        for sensor_name, point in self.sensor_map.iteritems():
             x = int(point[0] / self.map_resolution) + 1
             y = int(point[1] / self.map_resolution) + 1
             plt.text(x, y, sensor_name, bbox=dict(facecolor='white', alpha=0.8))
@@ -257,11 +225,10 @@ class DataLine():
         self.sensor_type = split[4]
 
 if __name__ == "__main__":
-    # get command line arguments
-    smarthome_data_filepath = sys.argv[1]
+    print "not much, wbu"
 
     # build the heatmap and mse map
-    heatmap = Heatmap(smarthome_data_filepath)
+    # heatmap = Heatmap(smarthome_data_filepath)
 
     # display the heatmap
-    heatmap.display_heatmap()
+    # heatmap.display_heatmap()
