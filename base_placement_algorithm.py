@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from slam_map import SlamMap
+from reachability_map import ReachabilityMap
 from heatmap import Heatmap
 from path_map import PathMap
 from weighted_average import WeightedAverage
@@ -30,6 +31,9 @@ class BasePlacer:
         # load slam map
         self.slam_map = slam_map = SlamMap(slam_data_filepath)
 
+        # load reachability map
+        self.reachability_map = reachability_map = ReachabilityMap(slam_map)
+
         # load heatmap
         self.heatmap = heatmap = Heatmap(sensor_data_filepath)
         heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
@@ -41,10 +45,10 @@ class BasePlacer:
         self.weighted_average = WeightedAverage(heatmap)
         self.average_point = self.weighted_average.get_weighted_average_point()
 
-        self._build_map(slam_data_filepath, sensor_data_filepath)
+        self._build_map()
 
 
-    def _build_map(self, slam_data_filepath, sensor_data_filepath):
+    def _build_map(self):
 
         # find the value of each point
         placement_map = np.zeros_like(self.heatmap.get_heatmap_array())
@@ -54,7 +58,34 @@ class BasePlacer:
                 # find the value of a given location
                 placement_map[i, j] = self.find_value(i, j)
 
+        # rescale to between zero and 1
+        # note that all values in the map are less than zero
+        amin = np.amin(placement_map)
+        placement_map = np.subtract(placement_map, amin)
+        amax = np.amax(placement_map)
+        placement_map = np.true_divide(placement_map, amax)
+
+        # apply reachability mask
+        placement_map = self.apply_reachability_mask(placement_map)
+
         self.map = placement_map
+
+    def apply_reachability_mask(self, placement_map):
+        reachability_map = self.reachability_map.map
+
+        masked_map = np.zeros_like(reachability_map, dtype="float")
+
+        for i in range(reachability_map.shape[0]):
+            for j in range(reachability_map.shape[1]):
+                # skip values outside the placement map
+                if i > placement_map.shape[0] or j > placement_map.shape[1]:
+                    continue
+
+                if reachability_map[i, j] > 0:
+                    masked_map[i, j] = placement_map[i, j]
+        
+        return masked_map
+        
 
     def find_value(self, i, j):
         """
@@ -65,12 +96,14 @@ class BasePlacer:
 
         # get slam_map value
         slam_value = 0.0
+        """ Currently using reachability map instead of slam map
         if i >= self.slam_map.map.shape[0] or j >= self.slam_map.map.shape[1]:
             slam_value = 0.0
         else:
             slam_value = (self.slam_map.map[i, j]) * self.slam_weight
 
         slam_value = -slam_value
+        """
 
         # get weighted average value
         p1 = (i, j)
@@ -97,7 +130,6 @@ class BasePlacer:
 
         value_range = maximum - minimum
         cutoff = maximum - value_range * top_percent
-        print value_range, cutoff, minimum, maximum
 
         # clip any values below the desired percentage
         full = np.full_like(top_map, cutoff)
@@ -120,7 +152,8 @@ def main():
     sensor_data_filepath = sys.argv[2]
 
     base_placer = BasePlacer(slam_data_filepath, sensor_data_filepath)
-    base_placer.display_top(0.2)
+    base_placer.display_top(0.1)
+    base_placer.display_as_heatmap()
 
 if __name__ == "__main__":
     main()
