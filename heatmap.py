@@ -56,23 +56,19 @@ class Heatmap():
 
     No public attributes
 
-
     """
     def __init__(self, sensor_list_filepath, smarthome_data_filepath):
         # map of points, key: (x, y) value: heat value
         self.point_map = {}
 
         # map construction variables
-        self.map_width = 9.0 # in meters
-        self.map_height = 6.0 # in meters
+        self.map_width = 9.938  # in meters
+        self.map_height = 9.258 # in meters
         self.map_resolution = 0.125
         self.x_offset = 0 # x offset in map points
         self.y_offset = 0 # y offset in map points
-        # load the sensor map and a list of ignore sensors 
 
         self.sensor_map, self.ignored_sensors = get_sensor_map(sensor_list_filepath)
-        print self.sensor_map
-        print self.ignored_sensors
 
     def set_offset(self, offset_x, offset_y):
         """ Set the origin offset of the heatmap
@@ -174,12 +170,3 @@ class DataLine():
         self.sensor_name = split[2]
         self.message = split[3]
         self.sensor_type = split[4]
-
-if __name__ == "__main__":
-    print "not much, wbu"
-
-    # build the heatmap and mse map
-    # heatmap = Heatmap(smarthome_data_filepath)
-
-    # display the heatmap
-    # heatmap.display_heatmap()

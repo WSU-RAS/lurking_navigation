@@ -2,11 +2,13 @@
     Static Heatmap
 """
 import sys
-from heatmap import Heatmap 
+from heatmap import Heatmap, DataLine 
+from weighted_average import WeightedAverage
 
 class StaticHeatmap(Heatmap):
     def __init__(self, sensor_list_filepath, smarthome_data_filepath):
         Heatmap.__init__(self, sensor_list_filepath, smarthome_data_filepath)
+        self._load_from_file(smarthome_data_filepath)
 
     def _load_from_file(self, filepath):
         """ load heatmap from filepath
@@ -15,13 +17,11 @@ class StaticHeatmap(Heatmap):
         then normalize our heatmap.
 
         """
-        
-
-        print self.sensor_map
-        print self.ignored_sensors
-
         # build the heatmap
-        next_point = self._get_next_point(data_file, self.sensor_map, self.ignored_sensors)
+        smarthome_data_file = open(smarthome_data_filepath, 'r')
+
+        next_point = self._get_next_point(smarthome_data_file, self.sensor_map, self.ignored_sensors)
+
         while next_point is not None:
             # add to the sensor map
             if next_point in self.point_map:
@@ -30,16 +30,16 @@ class StaticHeatmap(Heatmap):
                 self.point_map[next_point] = 1
 
             # get the next point
-            next_point = self._get_next_point(data_file, self.sensor_map, self.ignored_sensors)
+            next_point = self._get_next_point(smarthome_data_file, self.sensor_map, self.ignored_sensors)
 
         # normalize the heatmap
         self._normalize_heatmap()
 
-    def _get_next_point(self, file, sensor_map, ignored_sensors):
+    def _get_next_point(self, smarthome_data_file, sensor_map, ignored_sensors):
         """ get the next point out of 
         """
         while True:
-            next_line = file.readline()
+            next_line = smarthome_data_file.readline()
 
             # check if the file is empty
             if len(next_line) <= 0:
@@ -74,3 +74,6 @@ if __name__ == "__main__":
     smarthome_data_filepath = sys.argv[2]
 
     static_heatmap = StaticHeatmap(sensor_list_filepath, smarthome_data_filepath) 
+
+    static_heatmap.display_heatmap() 
+
