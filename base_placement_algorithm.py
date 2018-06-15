@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from slam_map import SlamMap
 from reachability_map import ReachabilityMap
 from heatmap import Heatmap
+from static_heatmap import StaticHeatmap
+from dynamic_heatmap import DynamicHeatmap
 from path_map import PathMap
 from weighted_average import WeightedAverage
 
@@ -33,14 +35,14 @@ class BasePlacer:
         self.reachability_map = reachability_map = ReachabilityMap(slam_map)
 
         # load heatmap
-        self.heatmap = heatmap = Heatmap(sensor_list_filepath)
-        heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
+        self.static_heatmap = static_heatmap = StaticHeatmap(sensor_list_filepath, smarthome_data_filepath)
+        static_heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
 
         # load path map
-        self.path_map_array = PathMap(self.heatmap).get_as_array()
+        self.path_map_array = PathMap(self.static_heatmap).get_as_array()
 
         # load weighted average
-        self.weighted_average = WeightedAverage(heatmap)
+        self.weighted_average = WeightedAverage(static_heatmap)
         self.average_point = self.weighted_average.get_weighted_average_point()
 
         self._build_map()
@@ -48,7 +50,7 @@ class BasePlacer:
     def _build_map(self):
 
         # find the value of each point
-        placement_map = np.zeros_like(self.heatmap.get_heatmap_array())
+        placement_map = np.zeros_like(self.static_heatmap.get_heatmap_array())
 
         for i in range(placement_map.shape[0]):
             for j in range(placement_map.shape[1]):

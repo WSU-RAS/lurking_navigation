@@ -10,7 +10,7 @@ class StaticHeatmap(Heatmap):
         Heatmap.__init__(self, sensor_list_filepath)
         self._load_from_file(smarthome_data_filepath)
 
-    def _load_from_file(self, filepath):
+    def _load_from_file(self, smarthome_data_filepath):
         """ load heatmap from filepath
 
         get all the data out from a file and load into our heatmap

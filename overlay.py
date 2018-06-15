@@ -34,7 +34,6 @@ def main():
     # get the reachability map
     reachability_map = ReachabilityMap(slam_map)
 
-
     ### plot all the things to plot
     # plot the path map
     path_array = path_map.get_as_array()
@@ -53,8 +52,6 @@ def main():
 
     # plot the reachability map
     plt.imshow(np.transpose(reachability_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
-
-
 
     # flip y axis
     axis = plt.gca()
