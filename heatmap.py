@@ -51,8 +51,7 @@ class Heatmap():
     """ Heatmap class for creating a grid of the smarthome, where each spot 
     contains the likelihood that a human will be there.
 
-    Loads smarthome data from a file and uses that to build a heatmap of the area representing
-    human activity
+    Loads smarthome data from a file and uses that to build a heatmap of the area representing human activity
 
     No public attributes
 
