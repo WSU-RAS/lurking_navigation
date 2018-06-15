@@ -56,7 +56,7 @@ class Heatmap():
     No public attributes
 
     """
-    def __init__(self, sensor_list_filepath, smarthome_data_filepath):
+    def __init__(self, sensor_list_filepath):
         # map of points, key: (x, y) value: heat value
         self.point_map = {}
 

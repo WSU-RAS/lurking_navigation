@@ -1,5 +1,3 @@
-
-
 import sys
 
 import numpy as np
@@ -35,7 +33,7 @@ class BasePlacer:
         self.reachability_map = reachability_map = ReachabilityMap(slam_map)
 
         # load heatmap
-        self.heatmap = heatmap = Heatmap(smarthome_data_filepath)
+        self.heatmap = heatmap = Heatmap(sensor_list_filepath)
         heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
 
         # load path map
@@ -84,7 +82,6 @@ class BasePlacer:
                     masked_map[i, j] = placement_map[i, j]
         
         return masked_map
-        
 
     def find_value(self, i, j):
         """

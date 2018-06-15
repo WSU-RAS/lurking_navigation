@@ -7,7 +7,7 @@ from weighted_average import WeightedAverage
 
 class StaticHeatmap(Heatmap):
     def __init__(self, sensor_list_filepath, smarthome_data_filepath):
-        Heatmap.__init__(self, sensor_list_filepath, smarthome_data_filepath)
+        Heatmap.__init__(self, sensor_list_filepath)
         self._load_from_file(smarthome_data_filepath)
 
     def _load_from_file(self, filepath):
