@@ -74,6 +74,5 @@ if __name__ == "__main__":
     smarthome_data_filepath = sys.argv[2]
 
     static_heatmap = StaticHeatmap(sensor_list_filepath, smarthome_data_filepath) 
-
     static_heatmap.display_heatmap() 
 
