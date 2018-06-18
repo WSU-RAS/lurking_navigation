@@ -1,0 +1,11 @@
+map_width=9.938
+map_height=9.258
+map_resolution=0.125
+
+slam_map_origin=(9, 4)
+slam_map_rotation=-90
+
+slam_map_uncertainty_cutoff=30
+
+
+
