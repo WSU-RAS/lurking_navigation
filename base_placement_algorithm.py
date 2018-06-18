@@ -11,7 +11,6 @@ from slam_map import SlamMap
 from reachability_map import ReachabilityMap
 from heatmap import Heatmap
 from static_heatmap import StaticHeatmap
-from dynamic_heatmap import DynamicHeatmap
 from path_map import PathMap
 from weighted_average import WeightedAverage
 
@@ -81,7 +80,7 @@ class BasePlacer:
         for i in range(reachability_map.shape[0]):
             for j in range(reachability_map.shape[1]):
                 # skip values outside the placement map
-                if i > placement_map.shape[0] or j > placement_map.shape[1]:
+                if i >= placement_map.shape[0] or j >= placement_map.shape[1]:
                     continue
 
                 if reachability_map[i, j] > 0:
@@ -96,17 +95,6 @@ class BasePlacer:
 
         """
 
-        # get slam_map value
-        slam_value = 0.0
-        """ Currently using reachability map instead of slam map
-        if i >= self.slam_map.map.shape[0] or j >= self.slam_map.map.shape[1]:
-            slam_value = 0.0
-        else:
-            slam_value = (self.slam_map.map[i, j]) * self.slam_weight
-
-        slam_value = -slam_value
-        """
-
         # get weighted average value
         p1 = (i, j)
         p2 = self.average_point
@@ -115,7 +103,7 @@ class BasePlacer:
         # get path map value
         path_value = -self.path_map_array[i, j] * self.path_weight
 
-        return slam_value + wa_value + path_value
+        return wa_value + path_value
 
     def display_as_heatmap(self):
         plt.imshow(np.transpose(self.map), cmap='hot', interpolation='nearest')
@@ -155,7 +143,7 @@ def main():
     smarthome_data_filepath = sys.argv[3]
 
     base_placer = BasePlacer(slam_data_filepath, sensor_list_filepath, smarthome_data_filepath)
-    base_placer.display_top(0.1)
+    #base_placer.display_top(0.1)
     base_placer.display_as_heatmap()
 
 if __name__ == "__main__":
