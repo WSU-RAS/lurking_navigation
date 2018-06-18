@@ -1,3 +1,7 @@
+"""
+python base_placement_algorithm.py ~/smarthome_data/casas_slam_map.txt ~/smarthome_data/tokyo_sensors.txt ~/smarthome_data/tokyo.20170301-20170302_20180613.203344.txt 
+"""
+
 import sys
 
 import numpy as np

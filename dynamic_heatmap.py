@@ -1,8 +1,4 @@
-"""
-    Dynamic Heatmap
-"""
 import sys
-
 from heatmap import Heatmap 
 
 class DynamicHeatmap(Heatmap):
@@ -20,11 +16,11 @@ class DynamicHeatmap(Heatmap):
     def _import_sensor_information(self):
         print "wow what a great method"
 
+    def 
+
 if __name__ == "__main__":
     # Acquire input source for realtime heatmap generation 
     sensor_list_filepath = sys.argv[1]
     smarthome_data_source = sys.argv[2]
-
-
 
     dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, smarthome_data_source) 
