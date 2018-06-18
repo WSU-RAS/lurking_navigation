@@ -2,12 +2,14 @@
     Static Heatmap
 """
 import sys
+
+from config import Config
 from heatmap import Heatmap, DataLine 
 from weighted_average import WeightedAverage
 
 class StaticHeatmap(Heatmap):
-    def __init__(self, sensor_list_filepath, smarthome_data_filepath):
-        Heatmap.__init__(self, sensor_list_filepath)
+    def __init__(self, sensor_list_filepath, smarthome_data_filepath, config):
+        Heatmap.__init__(self, sensor_list_filepath, config)
         self._load_from_file(smarthome_data_filepath)
 
     def _load_from_file(self, smarthome_data_filepath):
@@ -70,7 +72,10 @@ if __name__ == "__main__":
     # Take in the file we will construct a heatmap from 
     sensor_list_filepath = sys.argv[1]
     smarthome_data_filepath = sys.argv[2]
+    config_filepath = sys.argv[3]
 
-    static_heatmap = StaticHeatmap(sensor_list_filepath, smarthome_data_filepath) 
+    config = Config(config_filepath)
+
+    static_heatmap = StaticHeatmap(sensor_list_filepath, smarthome_data_filepath, config) 
     static_heatmap.display_heatmap() 
 

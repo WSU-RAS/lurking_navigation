@@ -56,18 +56,27 @@ class Heatmap():
     No public attributes
 
     """
-    def __init__(self, sensor_list_filepath):
+    def __init__(self, sensor_list_filepath, config):
+        """ initialize the heatmap sensor list and config
+
+        input:
+            sensor_list_filepath - filepath to list of sensors
+            config - config object containing configuration for the site we want to use
+        """
         # map of points, key: (x, y) value: heat value
         self.point_map = {}
 
         # map construction variables
-        self.map_width = 9.938  # in meters
-        self.map_height = 9.258 # in meters
-        self.map_resolution = 0.125
-        self.x_offset = 0 # x offset in map points
-        self.y_offset = 0 # y offset in map points
+        self.map_width = config.map_width
+        self.map_height = config.map_height
+        self.map_resolution = config.map_resolution
+        self.x_offset = 0
+        self.y_offset = 0
 
         self.sensor_map, self.ignored_sensors = get_sensor_map(sensor_list_filepath)
+
+        offset_point = config.slam_origin
+        self.set_offset(offset_point[0], offset_point[1])
 
     def set_offset(self, offset_x, offset_y):
         """ Set the origin offset of the heatmap
@@ -108,6 +117,17 @@ class Heatmap():
             new_point_map[new_point] = value
 
         self.point_map = new_point_map
+
+        # adjust sensor map
+        new_sensor_map = {}
+        for sensor, point in self.sensor_map.iteritems():
+            new_x = point[0] + (new_x_offset - old_x_offset) * self.map_resolution
+            new_y = point[1] + (new_y_offset - old_y_offset) * self.map_resolution
+            new_point = (new_x, new_y)
+
+            new_sensor_map[sensor] = new_point
+
+        self.sensor_map = new_sensor_map
 
         # adjust map dimensions
         self.map_width += (new_x_offset - old_x_offset) * self.map_resolution
