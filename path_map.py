@@ -19,7 +19,7 @@ class PathMap:
 
     """
 
-    def __init__(self, heatmap, maximum_distance=2.5, path_thickness=1.5):
+    def __init__(self, heatmap, maximum_distance=2.5, path_thickness=2.0):
         """ build the path map from the heatmap
 
         inputs:

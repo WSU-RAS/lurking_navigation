@@ -26,7 +26,7 @@ class StaticHeatmap(Heatmap):
             # add to the sensor map
             if next_point in self.point_map:
                 self.point_map[next_point] += 1
-            else:
+            else: 
                 self.point_map[next_point] = 1
 
             # get the next point
@@ -36,8 +36,6 @@ class StaticHeatmap(Heatmap):
         self._normalize_heatmap()
 
     def _get_next_point(self, smarthome_data_file, sensor_map, ignored_sensors):
-        """ get the next point out of 
-        """
         while True:
             next_line = smarthome_data_file.readline()
 
@@ -74,6 +72,5 @@ if __name__ == "__main__":
     smarthome_data_filepath = sys.argv[2]
 
     static_heatmap = StaticHeatmap(sensor_list_filepath, smarthome_data_filepath) 
-
     static_heatmap.display_heatmap() 
 
