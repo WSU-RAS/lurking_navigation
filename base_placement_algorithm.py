@@ -76,7 +76,7 @@ class BasePlacer:
         for i in range(reachability_map.shape[0]):
             for j in range(reachability_map.shape[1]):
                 # skip values outside the placement map
-                if i > placement_map.shape[0] or j > placement_map.shape[1]:
+                if i >= placement_map.shape[0] or j >= placement_map.shape[1]:
                     continue
 
                 if reachability_map[i, j] > 0:
@@ -139,7 +139,7 @@ def main():
     smarthome_data_filepath = sys.argv[3]
 
     base_placer = BasePlacer(slam_data_filepath, sensor_list_filepath, smarthome_data_filepath)
-    base_placer.display_top(0.1)
+    #base_placer.display_top(0.1)
     base_placer.display_as_heatmap()
 
 if __name__ == "__main__":
