@@ -61,15 +61,21 @@ class SlamMap():
         np_map = scipy.misc.imresize(np_map, slam_resolution / heatmap_resolution)
 
         # rotate the map around the origin
+        # do 90 increment rotaion
+        np_map = np.rot90(np_map, -1)
+
+        # do fine rotation
+        """
         origin = self.origin
         padX = [np_map.shape[1] - origin[0], origin[0]]
         padY = [np_map.shape[0] - origin[1], origin[1]]
         np_map_padded = np.pad(np_map, [padY, padX], 'constant')
 
-        np_map_rotated = ndimage.rotate(np_map_padded, 4, reshape=False)
+        np_map_rotated = ndimage.rotate(np_map_padded, 90, reshape=False)
 
         np_map_final = np_map_rotated[padY[0] : -padY[1], padX[0] : -padX[1]]
         np_map = np_map_final
+        """
 
         return np_map
 
@@ -81,8 +87,10 @@ class SlamMap():
         """
         # hardcoded origin values for Kyoto
         # TODO move to param file or something
-        x = 16
-        y = 13
+        #x = 28
+        y = 9
+        x = 4
+        #y = 0
 
         origin = (x, y)
         return origin
