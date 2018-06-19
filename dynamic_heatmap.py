@@ -20,7 +20,8 @@ class DynamicHeatmap(Heatmap):
         Heatmap.__init__(self, sensor_list_filepath, config)
         self.heatmap = self.get_heatmap_array()
 
-    def _update_heatmap_array(self, triggered_sensor):
+    @staticmethod
+    def update(triggered_sensor):
         # get sensor coordinates of sensor that was triggered
 
 
@@ -49,8 +50,8 @@ class DynamicHeatmap(Heatmap):
         program_status = True 
 
         # Initialize the heatmap plot 
-        heatmap_array = self.get_heatmap_array()
-        np_heatmap = np.array(heatmap_array)
+        # heatmap_array = self.get_heatmap_array()
+        np_heatmap = np.array(self.heatmap)
         axis = plt.gca()
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
         axis.set_ylim(axis.get_ylim()[::-1])
@@ -62,8 +63,8 @@ class DynamicHeatmap(Heatmap):
 
         while True:
             # self._decay_heatmap(np_heatmap)
-            heatmap_array = self.increment_heatmap_array(heatmap_array)
-            np_heatmap = np.array(heatmap_array)
+            
+            np_heatmap = np.array(self.heatmap)
             axis = plt.gca()
             plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
 
@@ -87,4 +88,3 @@ if __name__ == "__main__":
     dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config) 
     dynamic_heatmap.display_heatmap()
 
-    #dynamic_heatmap.listen_to_sensors() # listens for sensors to be triggered
