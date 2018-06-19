@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+import rospy
+from ras_msgs.msg import SensorPub
+
 import sys
 import math
 
@@ -50,13 +54,21 @@ class DynamicHeatmap(Heatmap):
         
         return heatmap
 
+    def callback(self, data):
+        rospy.loginfo("%s was tripped" % (data.name))
+
+    def listener(self):
+        rospy.init_node('sensor_listener', anonymous=True) # Might need to be true depending on how many are published
+        rospy.Subscriber("sensor_tripped", SensorPub, self.callback)
+        # spin() simply keeps python from exiting until this node is stopped
+        rospy.spin()
+
 if __name__ == "__main__":
     # Acquire input source for realtime heatmap generation 
     sensor_list_filepath = sys.argv[1]
     config_filepath = sys.argv[2]
-
     config = Config(config_filepath)
 
     dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config) 
-
+    dynamic_heatmap.listener() # listens for sensors to be triggered
     dynamic_heatmap.get_heatmap_array()
