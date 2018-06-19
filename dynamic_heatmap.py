@@ -1,14 +1,15 @@
 import sys
 import math
 
+from config import Config
 from heatmap import Heatmap 
 
 TIME_TICK_LENGTH = 8           # in seconds
 HEATMAP_DECAY_STRENGTH = 0.8   # how quickly the heatmap decays
 
 class DynamicHeatmap(Heatmap):
-    def __init__(self, sensor_list_filepath):
-        Heatmap.__init__(self, sensor_list_filepath)
+    def __init__(self, sensor_list_filepath, config):
+        Heatmap.__init__(self, sensor_list_filepath, config)
 
         """
             dictionary of sensors 
@@ -52,7 +53,10 @@ class DynamicHeatmap(Heatmap):
 if __name__ == "__main__":
     # Acquire input source for realtime heatmap generation 
     sensor_list_filepath = sys.argv[1]
+    config_filepath = sys.argv[2]
 
-    dynamic_heatmap = DynamicHeatmap(sensor_list_filepath) 
+    config = Config(config_filepath)
+
+    dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config) 
 
     dynamic_heatmap.get_heatmap_array()
