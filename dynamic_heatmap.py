@@ -7,45 +7,26 @@ from heatmap import Heatmap
 import sys
 import math
 import time 
+import random 
 
 import numpy as np 
 import matplotlib.pyplot as plt
 
-TIME_TICK_LENGTH = 8           # in seconds
+TIME_TICK_LENGTH = 1           # in seconds
 HEATMAP_DECAY_STRENGTH = 0.8   # how quickly the heatmap decays
 
 class DynamicHeatmap(Heatmap):
     def __init__(self, sensor_list_filepath, config):
         Heatmap.__init__(self, sensor_list_filepath, config)
-
-        """
-            dictionary of sensors 
-            update heatmap every time tick 
-            display every time tick 
-        """
-        self.heatmap = [
-                    [0.0 for j in range(int(math.ceil(self.map_height / self.map_resolution)))] 
-                    for i in range(int(math.ceil(self.map_width / self.map_resolution)))
-                  ]
+        self.heatmap = self.get_heatmap_array()
 
     def _init_ras_location(self):
         print "nothing yet"
-        return (42, 42)
-
-    def get_heatmap_array(self):
-        """ get heatmap array
-
-        get the heatmap as a 2d array indicating the hotness at each area.
-        Note that the heatmap will be either normalized or not based on whether _normalize_heatmap has been run.
-
-        """
-        self.heatmap = self._decay_heatmap(self.heatmap)
-
-        return self.heatmap
 
     def _update_heatmap_array(self, triggered_sensor):
         # get sensor coordinates of sensor that was triggered
         # 
+
 
         print "not much, wbu"
 
@@ -63,7 +44,12 @@ class DynamicHeatmap(Heatmap):
         
         return heatmap
 
-    def display_heatmap(self):
+    def increment_heatmap_array(self, heatmap):
+        rand = random.randint(1,50)
+        heatmap[rand][rand] += 10
+        return heatmap
+
+    def display_active_heatmap(self):
         program_status = True 
 
         # Initialize the heatmap plot 
@@ -72,10 +58,22 @@ class DynamicHeatmap(Heatmap):
         axis = plt.gca()
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
         axis.set_ylim(axis.get_ylim()[::-1])
+        #plt.show()
+
+        fig = plt.gcf()
+        fig.show() 
+        fig.canvas.draw() 
 
         while True:
-            print "hmm"
-            plt.show()
+            # self._decay_heatmap(np_heatmap)
+            heatmap_array = self.increment_heatmap_array(heatmap_array)
+            np_heatmap = np.array(heatmap_array)
+            axis = plt.gca()
+            plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
+
+            fig = plt.gcf()
+            fig.show() 
+            fig.canvas.draw() 
 
             # get input using method that calls listener node object 
             # decay heatmap 
