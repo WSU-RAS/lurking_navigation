@@ -166,10 +166,12 @@ class Heatmap():
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
 
         # display sensor text
+        """
         for sensor_name, point in self.sensor_map.iteritems():
             x = int(point[0] / self.map_resolution) + 1
             y = int(point[1] / self.map_resolution) + 1
             plt.text(x, y, sensor_name, bbox=dict(facecolor='white', alpha=0.8))
+        """
 
         axis.set_ylim(axis.get_ylim()[::-1])
         plt.show()
