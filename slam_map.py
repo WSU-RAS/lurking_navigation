@@ -183,7 +183,7 @@ def get_between(s, first, last):
         last - substring to end finding between
 
     returns:
-        substring in s that is between the leftmost instance of substring first 
+        substring in s that is between the leftmost instance of substring first
         and the leftmost instance of substring last AFTER substring first.
 
     """
