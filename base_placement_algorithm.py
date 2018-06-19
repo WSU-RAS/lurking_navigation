@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+from config import Config
 from slam_map import SlamMap
 from reachability_map import ReachabilityMap
 from heatmap import Heatmap
@@ -24,7 +25,7 @@ class BasePlacer:
     a weighted value for every point on the map.
 
     """
-    def __init__(self, slam_data_filepath, sensor_list_filepath, smarthome_data_filepath):
+    def __init__(self, slam_data_filepath, sensor_list_filepath, smarthome_data_filepath, config):
         # variables
         self.map = None
         self.slam_weight = 1.0
@@ -32,13 +33,15 @@ class BasePlacer:
         self.path_weight = 1500.0
 
         # load slam map
-        self.slam_map = slam_map = SlamMap(slam_data_filepath)
+        self.slam_map = slam_map = SlamMap(slam_data_filepath, config)
 
         # load reachability map
         self.reachability_map = reachability_map = ReachabilityMap(slam_map)
 
         # load heatmap
-        self.static_heatmap = static_heatmap = StaticHeatmap(sensor_list_filepath, smarthome_data_filepath)
+        self.static_heatmap = static_heatmap = StaticHeatmap(sensor_list_filepath,
+                                                             smarthome_data_filepath,
+                                                             config)
         static_heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
 
         # load path map
@@ -141,8 +144,14 @@ def main():
     slam_data_filepath = sys.argv[1]
     sensor_list_filepath = sys.argv[2]
     smarthome_data_filepath = sys.argv[3]
+    config_filepath = sys.argv[4]
 
-    base_placer = BasePlacer(slam_data_filepath, sensor_list_filepath, smarthome_data_filepath)
+    config = Config(config_filepath)
+
+    base_placer = BasePlacer(slam_data_filepath, 
+                             sensor_list_filepath, 
+                             smarthome_data_filepath, 
+                             config)
     #base_placer.display_top(0.1)
     base_placer.display_as_heatmap()
 
