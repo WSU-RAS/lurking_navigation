@@ -20,12 +20,8 @@ class DynamicHeatmap(Heatmap):
         Heatmap.__init__(self, sensor_list_filepath, config)
         self.heatmap = self.get_heatmap_array()
 
-    def _init_ras_location(self):
-        print "nothing yet"
-
     def _update_heatmap_array(self, triggered_sensor):
         # get sensor coordinates of sensor that was triggered
-        # 
 
 
         print "not much, wbu"
@@ -49,7 +45,7 @@ class DynamicHeatmap(Heatmap):
         heatmap[rand][rand] += 10
         return heatmap
 
-    def display_active_heatmap(self):
+    def display_heatmap(self):
         program_status = True 
 
         # Initialize the heatmap plot 
@@ -92,4 +88,3 @@ if __name__ == "__main__":
     dynamic_heatmap.display_heatmap()
 
     #dynamic_heatmap.listen_to_sensors() # listens for sensors to be triggered
-    #dynamic_heatmap.get_heatmap_array()
