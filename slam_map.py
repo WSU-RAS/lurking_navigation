@@ -9,6 +9,8 @@ from scipy import ndimage
 import matplotlib.pyplot as plt
 import sys
 
+from config import Config
+
 class SlamMap():
     """ slam map class
 
@@ -16,9 +18,10 @@ class SlamMap():
     Goal: get the slam map to overlap with our heatmap
 
     """
-    def __init__(self, data_filepath):
+    def __init__(self, data_filepath, config):
         # variable declarations
         self.map = None # note that this is a numpy array not a 2d array
+        self.config = config
 
         # get raw slam data
         raw_data = RawSlamData(data_filepath)
@@ -44,7 +47,7 @@ class SlamMap():
         np_map = np.reshape(np_map, (raw_data.width, raw_data.height), order='F')
 
         # clip uncertain values
-        full = np.full_like(np_map, 30)
+        full = np.full_like(np_map, self.config.slam_uncertainty_cutoff)
         np_map = np.maximum(np_map, full)
 
         # scale to between 0 and 1
@@ -54,7 +57,7 @@ class SlamMap():
 
         # downsample to obtain the same resolution as the heatmap
         # transform origin
-        heatmap_resolution = 0.125
+        heatmap_resolution = self.config.map_resolution
         slam_resolution = self.resolution
 
         # downsample map
@@ -62,20 +65,22 @@ class SlamMap():
 
         # rotate the map around the origin
         # do 90 increment rotaion
-        np_map = np.rot90(np_map, -1)
+        degree_rotation = self.config.slam_rotation
+        full_rotations = int(degree_rotation / 90)
+        partial_rotation = degree_rotation % 90
+
+        np_map = np.rot90(np_map, full_rotations)
 
         # do fine rotation
-        """
         origin = self.origin
-        padX = [np_map.shape[1] - origin[0], origin[0]]
-        padY = [np_map.shape[0] - origin[1], origin[1]]
-        np_map_padded = np.pad(np_map, [padY, padX], 'constant')
+        pad_x = [np_map.shape[1] - origin[0], origin[0]]
+        pad_y = [np_map.shape[0] - origin[1], origin[1]]
+        np_map_padded = np.pad(np_map, [pad_y, pad_x], 'constant')
 
-        np_map_rotated = ndimage.rotate(np_map_padded, 90, reshape=False)
+        np_map_rotated = ndimage.rotate(np_map_padded, partial_rotation, reshape=False)
 
-        np_map_final = np_map_rotated[padY[0] : -padY[1], padX[0] : -padX[1]]
+        np_map_final = np_map_rotated[pad_y[0] : -pad_y[1], pad_x[0] : -pad_x[1]]
         np_map = np_map_final
-        """
 
         return np_map
 
@@ -85,14 +90,7 @@ class SlamMap():
         get the origin of the top left corner of the apartment in array values
 
         """
-        # hardcoded origin values for Kyoto
-        # TODO move to param file or something
-        #x = 28
-        y = 9
-        x = 4
-        #y = 0
-
-        origin = (x, y)
+        origin = self.config.slam_origin
         return origin
 
     def display_as_heatmap(self):
@@ -185,8 +183,8 @@ def get_between(s, first, last):
         last - substring to end finding between
 
     returns:
-        substring in s that is between the leftmost instance of substring first and the leftmost instance
-        of substring last AFTER substring first.
+        substring in s that is between the leftmost instance of substring first 
+        and the leftmost instance of substring last AFTER substring first.
 
     """
     try:
@@ -199,8 +197,11 @@ def get_between(s, first, last):
 def main():
     # get command line arguments
     data_filepath = sys.argv[1]
+    config_filepath = sys.argv[2]
 
-    slam_map = SlamMap(data_filepath)
+    config = Config(config_filepath)
+
+    slam_map = SlamMap(data_filepath, config)
     slam_map.display_as_heatmap()
 
 if __name__ == "__main__":

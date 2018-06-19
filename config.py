@@ -37,7 +37,6 @@ class Config():
             line_list = line.split("=")
             key = line_list[0].strip()
             value = eval(line_list[1].strip())
-            print type(value), value
 
             config_dict[key] = value
 
