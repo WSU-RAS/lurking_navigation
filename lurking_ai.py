@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import rospy
-from ras_msgs.msg import SensorPub
+
 from dynamic_heatmap import DynamicHeatmap
- 
+from ras_msgs.msg import SensorPub
+
 class ListenerNode():
     """
         Subscribes to sensor data and publishes a location for Ras to go to. 
@@ -17,7 +18,7 @@ class ListenerNode():
         rospy.loginfo("%s was tripped" % (data.name))
 
     def listener(self):
-        rospy.init_node('sensor_listener', anonymous=True) #Might need to be true depending on how many are published
+        rospy.init_node('sensor_listener', anonymous=True) 
         rospy.Subscriber("sensor_tripped", SensorPub, self.callback)
         rospy.spin()
 

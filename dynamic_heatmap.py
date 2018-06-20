@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-import rospy
-from ras_msgs.msg import SensorPub
-from config import Config
-from heatmap import Heatmap 
-
-import sys
 import math
-import time 
-import random 
+import random
+import sys
+import time
 
-import numpy as np 
 import matplotlib.pyplot as plt
+import numpy as np
+import rospy
+
+from config import Config
+from heatmap import Heatmap
+from ras_msgs.msg import SensorPub
 
 TIME_TICK_LENGTH = 1           # in seconds
 HEATMAP_DECAY_STRENGTH = 0.8   # how quickly the heatmap decays
@@ -87,4 +87,3 @@ if __name__ == "__main__":
 
     dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config) 
     dynamic_heatmap.display_heatmap()
-
