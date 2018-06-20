@@ -108,8 +108,29 @@ class BasePlacer:
 
         return wa_value + path_value
 
+    def get_best_point(self):
+        """ get the location of the best point
+
+        returns:
+            tuple (x, y) - indecies of the best scoring map location
+        """
+        max_value = 0.0 # minimum value of the map is 0.0
+        best_point = (-1, -1)
+
+        for i in range(self.map.shape[0]):
+            for j in range(self.map.shape[1]):
+                if self.map[i, j] > max_value:
+                    max_value = self.map[i, j]
+                    best_point = (i, j)
+
+        return best_point
+
     def display_as_heatmap(self):
+        best_point = self.get_best_point()
+
+        # display
         plt.imshow(np.transpose(self.map), cmap='hot', interpolation='nearest')
+        plt.plot(best_point[0], best_point[1], 'go')
 
         axis = plt.gca()
         axis.set_ylim(axis.get_ylim()[::-1])
