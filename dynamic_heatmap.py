@@ -20,8 +20,6 @@ class DynamicHeatmap(Heatmap):
         Heatmap.__init__(self, sensor_list_filepath, config)
         self.heatmap = self.get_heatmap_array()
 
-
-
     @staticmethod
     def update(triggered_sensor):
         # get sensor coordinates of sensor that was triggered
@@ -38,7 +36,7 @@ class DynamicHeatmap(Heatmap):
             This method is called every TIME_TICK. 
         """
         for row_index, row in enumerate(heatmap):
-            for col_index, point in enumerate(row): 
+            for col_index in enumerate(row): 
                 heatmap[row_index][col_index] *= HEATMAP_DECAY_STRENGTH # currently 0.8
         
         return heatmap

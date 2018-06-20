@@ -1,5 +1,3 @@
-
-
 import sys
 import math
 import numpy as np
@@ -7,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from heatmap import Heatmap
-
+from static_heatmap import StaticHeatmap
+from config import Config
 
 class PathMap:
     """ represents a map of estimated paths that the person takes through the house
@@ -99,7 +98,6 @@ class PathMap:
                     # add to list of edges
                     other_node = self.nodes[other_point]
                     node.add_edge(other_node)
-
 
 class PathNode:
     """ represents a single sensor in the house
@@ -201,15 +199,15 @@ def weighted_line(r0, c0, r1, c1, w, rmin=0, rmax=np.inf):
 def get_point_distance(p1, p2):
     return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
-
 def main():
     sensor_filepath = sys.argv[1]
+    config_filepath = sys.argv[2]
+    config = Config(config_filepath)
 
-    heatmap = Heatmap(sensor_filepath)
+    # static_heatmap = StaticHeatmap(sensor_filepath, config)
 
-    pathmap = PathMap(heatmap)
+    pathmap = PathMap(static_heatmap)
     pathmap.display_as_heatmap()
-
 
 if __name__ == "__main__":
     main()
