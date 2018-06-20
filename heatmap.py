@@ -96,7 +96,6 @@ class Heatmap():
         potential issues:
             adjustment of map dimensions and points may not be reliable after multiple offsets
                 due to floating point precision
-        
         """
         # set up variables
         old_x_offset = self.x_offset

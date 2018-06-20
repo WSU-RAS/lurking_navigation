@@ -20,15 +20,13 @@ class DynamicHeatmap(Heatmap):
         Heatmap.__init__(self, sensor_list_filepath, config)
         self.heatmap = self.get_heatmap_array()
 
-    @staticmethod
-    def update(triggered_sensor):
-        # get sensor coordinates of sensor that was triggered
-
-
-        print "not much, wbu"
+    def update(self, triggered_sensor):
+        if triggered_sensor in self.sensor_map: 
+            sensor_location = self._get_sensor_location(triggered_sensor)
 
     def _get_sensor_location(self, triggered_sensor):
-        print "wowza mickey"
+        print self.sensor_map[triggered_sensor]
+        return self.sensor_map[triggered_sensor]
 
     def _decay_heatmap(self, heatmap):
         """
@@ -61,11 +59,6 @@ class DynamicHeatmap(Heatmap):
         
         if (axis.get_ylim()[0] > axis.get_ylim()[1]):
             axis.set_ylim(axis.get_ylim()[::-1])
-
-        # print axis.get_ylim()[0] 
-
-        # makes sure our origin is correctly set without flipping the y-axis
-        # axis.set_ylim(axis.get_ylim()[0])
 
         # plt.show
         fig = plt.gcf()

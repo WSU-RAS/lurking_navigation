@@ -28,12 +28,13 @@ class LurkingAI():
         Subscribes to sensor data and publishes a landing location for Ras. 
     """
     def __init__(self, dynamic_heatmap, reachability_map):
-        print "nothing"
-
         self.listener()
 
     def callback(self, data):
+        # Tell the heatmap handler that a sensor was triggered
+        dynamic_heatmap.update(data.name) 
         dynamic_heatmap.display_heatmap() 
+
 
         # create new pathmap based on heatmap 
 
