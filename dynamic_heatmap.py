@@ -20,12 +20,17 @@ class DynamicHeatmap(Heatmap):
         Heatmap.__init__(self, sensor_list_filepath, config)
         self.heatmap = self.get_heatmap_array()
 
-    def update(self, triggered_sensor):
+    def update_heatmap(self, triggered_sensor):
         if triggered_sensor in self.sensor_map: 
             sensor_location = self._get_sensor_location(triggered_sensor)
+            # x_index = int(point[0] / self.map_resolution)
+
+            sensor_location = int(sensor_location[0]/self.map_resolution), int(sensor_location[1]/self.map_resolution)
+            print sensor_location
+
+            self.heatmap[sensor_location[0]][sensor_location[1]] += 1
 
     def _get_sensor_location(self, triggered_sensor):
-        print self.sensor_map[triggered_sensor]
         return self.sensor_map[triggered_sensor]
 
     def _decay_heatmap(self, heatmap):
@@ -39,18 +44,11 @@ class DynamicHeatmap(Heatmap):
         
         return heatmap
 
-    def increment_heatmap_array(self, heatmap):
-        rand = random.randint(1,50)
-        heatmap[rand][rand] += 10
-        return heatmap
-
     """
         Displays heatmap once - called every time tick from lurking_ai 
     """
     def display_heatmap(self):
-
         # heatmap_array = self.get_heatmap_array()
-        self.heatmap = self.increment_heatmap_array(self.heatmap)
 
         np_heatmap = np.array(self.heatmap)
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')

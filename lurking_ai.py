@@ -32,7 +32,7 @@ class LurkingAI():
 
     def callback(self, data):
         # Tell the heatmap handler that a sensor was triggered
-        dynamic_heatmap.update(data.name) 
+        dynamic_heatmap.update_heatmap(data.name) 
         dynamic_heatmap.display_heatmap() 
 
 
@@ -54,7 +54,7 @@ class LurkingAI():
         landing zone for Ras at this current TIME_TICK. 
     """
     def get_landing_zone(self):
-        print (42,42)
+        nothing = 0
 
 if __name__ == "__main__":
     # Acquire filepaths 
