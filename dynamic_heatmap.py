@@ -38,9 +38,9 @@ class DynamicHeatmap(Heatmap):
         This method is called every TIME_TICK. 
     """
     def decay_heatmap(self):
-        for row_index in range(len(self.heatmap)):
-            for col_index in range(len(self.heatmap[0])):
-                self.heatmap[row_index][col_index] *= HEATMAP_DECAY_STRENGTH # currently 0.8
+        for x_index in range(len(self.heatmap)):
+            for y_index in range(len(self.heatmap[0])):
+                self.heatmap[x_index][y_index] *= HEATMAP_DECAY_STRENGTH # currently 0.8
 
     """
         Displays heatmap once - called every TIME_TICK from LurkingAI or Simulator
@@ -64,3 +64,5 @@ class DynamicHeatmap(Heatmap):
     """
     def mark_spot_on_map(self, point):
         self.landing_zone = point
+
+    def get_

@@ -21,8 +21,8 @@ from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
 from config import Config
 
-TIME_TICK  = 60  # in seconds
-UPDATE_RAS = 5   # in seconds
+TIME_TICK  = 60    # in seconds
+UPDATE_RAS = 300   # in seconds
 
 class LurkingAI():
     """
@@ -64,7 +64,6 @@ class LurkingAI():
         # Use the dynamic_heatmap to grab the weighted average 
         weighted_average = WeightedAverage(dynamic_heatmap)
         average_point = weighted_average.get_weighted_average_point()
-        print average_point
 
         landing_zone = average_point
 
@@ -73,7 +72,6 @@ class LurkingAI():
         # Combine these somehow to determine landing zone 
 
         dynamic_heatmap.mark_spot_on_map(landing_zone)
-        print landing_zone
 
 if __name__ == "__main__":
     # Acquire filepaths 
