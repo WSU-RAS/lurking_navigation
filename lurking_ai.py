@@ -15,13 +15,14 @@ import rospy
 
 from dynamic_heatmap import DynamicHeatmap
 from reachability_map import ReachabilityMap
+from base_placement_algorithm import BasePlacer
 from path_map import PathMap
 from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
 from config import Config
 
 TIME_TICK  = 60  # in seconds
-UPDATE_RAS = 300 # in seconds
+UPDATE_RAS = 5   # in seconds
 
 class LurkingAI():
     """
@@ -61,6 +62,11 @@ class LurkingAI():
         landing_zone = (10,15)
 
         # Use the dynamic_heatmap to grab the weighted average 
+        weighted_average = WeightedAverage(dynamic_heatmap)
+        average_point = weighted_average.get_weighted_average_point()
+        print average_point
+
+        landing_zone = average_point
 
         # Create a pathmap based on the heatmap 
 
