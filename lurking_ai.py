@@ -20,8 +20,7 @@ from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
 from config import Config
 
-TIME_TICK = 1                  # in seconds
-HEATMAP_DECAY_STRENGTH = 0.8   # how quickly the heatmap decays
+TIME_TICK = 60 # in seconds
 
 class LurkingAI():
     """
@@ -40,17 +39,16 @@ class LurkingAI():
         # create new pathmap based on heatmap 
 
         self.get_landing_zone() 
-        rospy.loginfo("%s was tripped" % (data.name))
 
     def timer_callback(self, data):
-        print "nice"
+        dynamic_heatmap.decay_heatmap()
 
     """
         Creates a listener node that acquires sensor data continuously. 
     """
     def listener(self):
         rospy.init_node('sensor_listener', anonymous=True) 
-        rospy.Timer(rospy.Duration(2), self.timer_callback)
+        rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
         rospy.Subscriber("sensor_tripped", SensorPub, self.update_heatmap)
         rospy.spin() 
 
