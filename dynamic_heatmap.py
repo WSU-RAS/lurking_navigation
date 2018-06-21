@@ -23,31 +23,25 @@ class DynamicHeatmap(Heatmap):
     def update_heatmap(self, triggered_sensor):
         if triggered_sensor in self.sensor_map: 
             sensor_location = self._get_sensor_location(triggered_sensor)
-            # x_index = int(point[0] / self.map_resolution)
-
             sensor_location = int(sensor_location[0]/self.map_resolution), int(sensor_location[1]/self.map_resolution)
-            print sensor_location
-
             self.heatmap[sensor_location[0]][sensor_location[1]] += 1
 
     def _get_sensor_location(self, triggered_sensor):
         return self.sensor_map[triggered_sensor]
 
-    def _decay_heatmap(self, heatmap):
+    def decay_heatmap(self):
         """
             Decay every point in the heatmap by a certain preset percentage.
             This method is called every TIME_TICK. 
         """
-        for row_index, row in enumerate(heatmap):
+        for row_index, row in enumerate(self.heatmap):
             for col_index in enumerate(row): 
-                heatmap[row_index][col_index] *= HEATMAP_DECAY_STRENGTH # currently 0.8
-        
-        return heatmap
-
-    """
-        Displays heatmap once - called every time tick from lurking_ai 
-    """
+                self.heatmap[row_index][col_index] *= HEATMAP_DECAY_STRENGTH # currently 0.8
+    
     def display_heatmap(self):
+        """
+        Displays heatmap once - called every time tick from lurking_ai 
+        """
         # heatmap_array = self.get_heatmap_array()
 
         np_heatmap = np.array(self.heatmap)
