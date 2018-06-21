@@ -64,5 +64,32 @@ class DynamicHeatmap(Heatmap):
     """
     def mark_spot_on_map(self, point):
         self.landing_zone = point
+        print self.landing_zone
 
-    def get_
+    """
+        Returns the internal heatmap to outside classes 
+    """
+    def get_heatmap(self):
+        return self.heatmap
+
+    """ 
+        Divide each value of the heatmap by the sum of all values.
+    """
+    def get_normalized_heatmap(self):
+        normalized_heatmap = self.heatmap # duplicate the heatmap 
+
+        # Sum all the values in the heatmap 
+        sum = 0 
+        for x_index in range(len(self.heatmap)):
+            for y_index in range(len(self.heatmap[0])):
+                sum += self.heatmap[x_index][y_index]
+
+        print "sum is", sum 
+
+        if sum != 0: 
+            # divide each entry by the sum
+            for x_index in range(len(self.heatmap)):
+                for y_index in range(len(self.heatmap[0])):
+                    normalized_heatmap[x_index][y_index] = self.heatmap[x_index][y_index] / float(sum)
+
+        return normalized_heatmap 

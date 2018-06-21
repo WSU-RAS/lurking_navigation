@@ -65,6 +65,7 @@ class LurkingAI():
         weighted_average = WeightedAverage(dynamic_heatmap)
         average_point = weighted_average.get_weighted_average_point()
 
+
         landing_zone = average_point
 
         # Create a pathmap based on the heatmap 

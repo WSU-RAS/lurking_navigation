@@ -30,26 +30,19 @@ class WeightedAverage():
         self.map_resolution = 0.125
         self.number_of_sensors = 0
         self.heatmap = heatmap
-        self.point_map = self.heatmap.point_map
-        self.map_resolution = self.heatmap.map_resolution
         self.result = (0,0)
 
     def get_weighted_average_point(self):
         x_average = 0
         y_average = 0
 
-        print self.heatmap
+        self.heatmap = self.heatmap.get_normalized_heatmap() 
 
-        """
-        for x_index in self.heatmap[0]:
+        for x_index in range(len(self.heatmap)):
             for y_index in range(len(self.heatmap[0])):
                 if (self.heatmap[x_index][y_index] != 0):
                     x_average += (x_index * self.heatmap[x_index][y_index])
                     y_average += (y_index * self.heatmap[x_index][y_index])
-                    print x_index, y_index
-                    print self.heatmap[x_index][y_index]
-                    print x_average, y_average
-        """
 
         weighted_average_point = (x_average, y_average)
         self.result = weighted_average_point
