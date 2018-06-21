@@ -20,7 +20,8 @@ from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
 from config import Config
 
-TIME_TICK = 60 # in seconds
+TIME_TICK  = 60  # in seconds
+UPDATE_RAS = 300 # in seconds
 
 class LurkingAI():
     """
@@ -29,35 +30,44 @@ class LurkingAI():
     def __init__(self, dynamic_heatmap, reachability_map):
         self.listener()
 
-    def update_heatmap(self, data):
-        # Tell the heatmap handler that a sensor was triggered
-        dynamic_heatmap.update_heatmap(data.name) 
-        dynamic_heatmap.display_heatmap() 
-
-        # get a weighted average based on the heatmap 
-
-        # create new pathmap based on heatmap 
-
-        self.get_landing_zone() 
-
-    def timer_callback(self, data):
-        dynamic_heatmap.decay_heatmap()
-
     """
         Creates a listener node that acquires sensor data continuously. 
     """
     def listener(self):
         rospy.init_node('sensor_listener', anonymous=True) 
         rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
+        rospy.Timer(rospy.Duration(1), self.get_landing_zone)
         rospy.Subscriber("sensor_tripped", SensorPub, self.update_heatmap)
         rospy.spin() 
 
     """
-        Using a heatmap and weighted average, returns an "optimal"
-        landing zone for Ras at this current TIME_TICK. 
+        Inform the heatmap handler that sensor was triggered
     """
-    def get_landing_zone(self):
-        nothing = 0
+    def update_heatmap(self, data):
+        dynamic_heatmap.update_heatmap(data.name) 
+        dynamic_heatmap.display_heatmap() 
+
+    """
+        Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
+    """
+    def timer_callback(self, data):
+        dynamic_heatmap.decay_heatmap()
+
+    """
+        Using the heatmap, pathmap, and weighted average, returns an "optimal"
+        landing zone for Ras at this current moment. 
+    """
+    def get_landing_zone(self, data):
+        landing_zone = (10,15)
+
+        # Use the dynamic_heatmap to grab the weighted average 
+
+        # Create a pathmap based on the heatmap 
+
+        # Combine these somehow to determine landing zone 
+
+        dynamic_heatmap.mark_spot_on_map(landing_zone)
+        print landing_zone
 
 if __name__ == "__main__":
     # Acquire filepaths 
