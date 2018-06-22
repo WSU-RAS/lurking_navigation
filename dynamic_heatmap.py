@@ -18,7 +18,9 @@ class DynamicHeatmap(Heatmap):
     def __init__(self, sensor_list_filepath, config):
         Heatmap.__init__(self, sensor_list_filepath, config)
         self.heatmap = self.get_heatmap_array()
-        self.landing_zone = (0,0)
+        self.landing_zone = (0,0) # Eventually will look at historical data
+        self.previous_point = (0,0)
+        #self.point = plt.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
 
     """
         Called every time a sensor is triggered. 
@@ -46,10 +48,21 @@ class DynamicHeatmap(Heatmap):
         Displays heatmap once - called every TIME_TICK from LurkingAI or Simulator
     """
     def display_heatmap(self):
+        plt.gcf().clear()
         np_heatmap = np.array(self.heatmap)
-        plt.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
-        plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
+
+        
+
+        #self.point = plt.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
         axis = plt.gca()
+
+        point = axis.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
+        del point 
+        # point.remove() 
+
+        plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
+
+
         
         # Checks if our y-axis is aligned with the origin
         if (axis.get_ylim()[0] > axis.get_ylim()[1]):
@@ -63,8 +76,8 @@ class DynamicHeatmap(Heatmap):
         This is included here because the heatmap is displayed in this class. 
     """
     def mark_spot_on_map(self, point):
+        self.previous_point = self.landing_zone
         self.landing_zone = point
-        print self.landing_zone
 
     """
         Returns the internal heatmap to outside classes 
@@ -83,8 +96,6 @@ class DynamicHeatmap(Heatmap):
         for x_index in range(len(self.heatmap)):
             for y_index in range(len(self.heatmap[0])):
                 sum += self.heatmap[x_index][y_index]
-
-        print "sum is", sum 
 
         if sum != 0: 
             # divide each entry by the sum

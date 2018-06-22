@@ -1,3 +1,5 @@
+""" python lurking_ai.py ~/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt """
+
 #!/usr/bin/env python
 """
     LurkingAI listens to sensor data and uses it to create a DynamicHeatmap 
@@ -59,14 +61,9 @@ class LurkingAI():
         landing zone for Ras at this current moment. 
     """
     def get_landing_zone(self, data):
-        landing_zone = (10,15)
-
         # Use the dynamic_heatmap to grab the weighted average 
-        weighted_average = WeightedAverage(dynamic_heatmap)
-        average_point = weighted_average.get_weighted_average_point()
-
-
-        landing_zone = average_point
+        weighted_average = WeightedAverage(dynamic_heatmap).get_weighted_average_point()
+        landing_zone = weighted_average
 
         # Create a pathmap based on the heatmap 
 
