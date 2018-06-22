@@ -50,20 +50,11 @@ class DynamicHeatmap(Heatmap):
     def display_heatmap(self):
         plt.gcf().clear()
         np_heatmap = np.array(self.heatmap)
-
-        
-
-        #self.point = plt.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
         axis = plt.gca()
-
         point = axis.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
-        del point 
-        # point.remove() 
 
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
 
-
-        
         # Checks if our y-axis is aligned with the origin
         if (axis.get_ylim()[0] > axis.get_ylim()[1]):
             axis.set_ylim(axis.get_ylim()[::-1])

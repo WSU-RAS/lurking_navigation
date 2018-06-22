@@ -14,10 +14,12 @@
 """
 import sys
 import rospy
+import numpy as np 
 
 from dynamic_heatmap import DynamicHeatmap
 from reachability_map import ReachabilityMap
 from base_placement_algorithm import BasePlacer
+from slam_map import SlamMap
 from path_map import PathMap
 from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
@@ -30,8 +32,11 @@ class LurkingAI():
     """
         Subscribes to sensor data and publishes a landing location for Ras. 
     """
-    def __init__(self, dynamic_heatmap, reachability_map):
+    def __init__(self, dynamic_heatmap, slam_data_filepath):
         self.listener()
+        self.slam_map = SlamMap(slam_data_filepath, config)
+        self.reachability_map = ReachabilityMap(self.slam_map)
+        self.path_map_array
 
     """
         Creates a listener node that acquires sensor data continuously. 
@@ -66,6 +71,7 @@ class LurkingAI():
         landing_zone = weighted_average
 
         # Create a pathmap based on the heatmap 
+        self.path_map_array = PathMap(dynamic_heatmap).get_as_array()
 
         # Combine these somehow to determine landing zone 
 
@@ -75,14 +81,12 @@ if __name__ == "__main__":
     # Acquire filepaths 
     sensor_list_filepath = sys.argv[1]
     config_filepath = sys.argv[2]
+    slam_map_filepath = sys.argv[3]
     config = Config(config_filepath)
 
     # Create a dynamic heatmap object 
     dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config) 
 
-    # Get the reachability map 
-    reachability_map = {} # empty
-
     # Create a LurkingAI object that sends information to the heatmap 
-    lurking_ai = LurkingAI(dynamic_heatmap, reachability_map)
+    lurking_ai = LurkingAI(dynamic_heatmap, slam_map_filepath)
 
