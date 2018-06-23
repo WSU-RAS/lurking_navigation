@@ -6,6 +6,8 @@
 # language imports
 import sys
 import math
+import time
+import datetime
 
 # library imports
 import matplotlib.pyplot as plt
@@ -185,6 +187,10 @@ class DataLine():
 
         self.date = split[0]
         self.time = split[1]
+        
+        time_string = self.date + " " + self.time.split(".")[0]
+        self.timestamp = time.mktime(datetime.datetime.strptime(time_string, "%Y-%m-%d %H:%M:%S").timetuple())
+
         self.sensor_name = split[2]
         self.message = split[3]
         self.sensor_type = split[4]
