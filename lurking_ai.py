@@ -25,6 +25,8 @@ from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
 from config import Config
 
+from path_map import get_point_distance
+
 TIME_TICK  = 60    # in seconds
 UPDATE_RAS = 300   # in seconds
 
@@ -33,10 +35,88 @@ class LurkingAI():
         Subscribes to sensor data and publishes a landing location for Ras. 
     """
     def __init__(self, dynamic_heatmap, slam_data_filepath):
-        self.listener()
+        self.map = None
+        self.average_point = (0,0)
+        self.slam_weight = 1.0
+        self.wa_weight = 0.1
+        self.path_weight = 1500.0
+        self.dynamic_heatmap = dynamic_heatmap
         self.slam_map = SlamMap(slam_data_filepath, config)
+        # set offset of dynamic heatmap 
         self.reachability_map = ReachabilityMap(self.slam_map)
-        self.path_map_array
+        
+        # Create a pathmap based on the heatmap 
+        self.path_map_array = PathMap(dynamic_heatmap).get_as_array()
+
+        self.listener()
+
+    def _build_map(self):
+        # find the value of each point
+        placement_map = np.zeros_like(self.dynamic_heatmap.get_heatmap())
+
+        for i in range(placement_map.shape[0]):
+            for j in range(placement_map.shape[1]):
+                # find the value of a given location
+                placement_map[i, j] = self.find_value(i, j)
+
+        # rescale to between zero and 1
+        # note that all values in the map are less than zero
+        amin = np.amin(placement_map)
+        placement_map = np.subtract(placement_map, amin)
+        amax = np.amax(placement_map)
+        placement_map = np.true_divide(placement_map, amax)
+
+        # apply reachability mask
+        placement_map = self.apply_reachability_mask(placement_map)
+
+        self.map = placement_map
+
+    def apply_reachability_mask(self, placement_map):
+        reachability_map = self.reachability_map.map
+
+        masked_map = np.zeros_like(reachability_map, dtype="float")
+
+        for i in range(reachability_map.shape[0]):
+            for j in range(reachability_map.shape[1]):
+                # skip values outside the placement map
+                if i >= placement_map.shape[0] or j >= placement_map.shape[1]:
+                    continue
+
+                if reachability_map[i, j] > 0:
+                    masked_map[i, j] = placement_map[i, j]
+        
+        return masked_map
+
+    def find_value(self, i, j):
+        """
+        find the placement value at the given array location
+        """
+        # get weighted average value
+        from_point = (i, j)
+        to_point = self.average_point
+        wa_value = -(get_point_distance(from_point, to_point)**2) * self.wa_weight
+
+        # get path map value
+        path_value = -self.path_map_array[i, j] * self.path_weight
+
+        return wa_value + path_value
+
+    def get_best_point(self):
+        """ get the location of the best point
+
+        returns:
+            tuple (x, y) - indecies of the best scoring map location
+        """
+        max_value = 0.0 # minimum value of the map is 0.0
+        best_point = (-1, -1)
+
+        for i in range(self.map.shape[0]):
+            for j in range(self.map.shape[1]):
+                if self.map[i, j] > max_value:
+                    max_value = self.map[i, j]
+                    best_point = (i, j)
+
+        return best_point
 
     """
         Creates a listener node that acquires sensor data continuously. 
@@ -68,14 +148,17 @@ class LurkingAI():
     def get_landing_zone(self, data):
         # Use the dynamic_heatmap to grab the weighted average 
         weighted_average = WeightedAverage(dynamic_heatmap).get_weighted_average_point()
+        self.average_point = weighted_average
         landing_zone = weighted_average
-
-        # Create a pathmap based on the heatmap 
-        self.path_map_array = PathMap(dynamic_heatmap).get_as_array()
 
         # Combine these somehow to determine landing zone 
 
         dynamic_heatmap.mark_spot_on_map(landing_zone)
+
+        self._build_map() 
+
+        landing_zone = self.get_best_point() 
+        print landing_zone
 
 if __name__ == "__main__":
     # Acquire filepaths 
