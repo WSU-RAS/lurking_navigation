@@ -42,152 +42,101 @@ class Simulator:
 
         self.shortest_paths = ShortestPaths(self.reachability_map.map)
 
-    def run_dynamic_test(self, sensor_data_filepath):
-        """ test the lurking ai algorithm
+    def run_static_test(self, 
+                        previous_sensor_data_filepath,
+                        current_sensor_data_filepath):
+        """ test the static base placement algorithm
         
-        load up and run the lurking ai in a simulated environment.
-        Evaluate on DTD.
+        get the best point from the base placement algorithm from a previous
+        data file and run it against a more recent data file to check how
+        well it does in terms of distance.
+
+        input:
+            previous_sensor_data_filepath - filepath to data file to use as
+                the prior data to initialize the base placement algorithm.
+            current_sensor_data_filepath - filepath to data file to use as
+                the data to test against
+
+        returns:
+            average distance - average distance of the chosen point of the
+                base placer to the actual position of the people in the
+                data file
+            maximum distance - maximum distance of the chosen point of the
+                base placer to the actual position of the people in the data
+                file.
 
         """
-        # constants
-        decay_time = 60 # decay time in seconds
-        time_scale = 5000.0 # multiplier applied to simulated time
-
         # open data files
-        sensor_data_file = open(sensor_data_filepath, "r")
-
-        # load up the dynamic heatmap
-        dynamic_heatmap = DynamicHeatmap(self.sensor_map_filepath, self.config)
-
-        # run the simulator until we run out of data
-        distances = []
-        previous_decay_time = None
-        chosen_point = (48, 45)
-
-        previous_timestamp = None
-        distance = 99999
-
-        while distance is not None: # step returns None if there is no more data
-            # choose a point
-            # TODO get real point. For now just run the heatmap
-            chosen_point = (48, 45)
-
-            # run dynamic step
-            distance, path, point, data = self.temp_step(chosen_point, sensor_data_file)
-            
-            if distance < 9000: # ridiculously large distance means we cannot reach the point from our other point
-                distances.append(distance)
-                sensor_name = data.sensor_name
-                time = data.timestamp
-
-                # run decay times on the heatmap
-                if previous_decay_time != None:
-                    if time - previous_decay_time > decay_time:
-                        decay_times_to_run = int((time - previous_decay_time) / decay_time)
-
-                        # decay the map as many times as the decay time has passed
-                        for i in xrange(decay_times_to_run):
-                            dynamic_heatmap.decay_heatmap()
-
-                        # update the previous time
-                        previous_decay_time += decay_times_to_run * decay_time
-                else:
-                    previous_decay_time = time
-
-                # print the time value
-                print data.date + " " + data.time
-
-                # update the heatmap values
-                dynamic_heatmap.update_heatmap(sensor_name)
-
-                # display the heatmap
-                np_heatmap = np.array(dynamic_heatmap.heatmap)
-                plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
-
-                # display the slam map
-                plt.imshow(np.transpose(self.slam_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')
-
-                # display the triggered point
-                plt.plot(point[0], point[1], 'bo')
-
-                # display functionality for the plot
-                axis = plt.gca()
-                if axis.get_ylim()[0] > axis.get_ylim()[1]:
-                    axis.set_ylim(axis.get_ylim()[::-1])
-                
-                if previous_timestamp is not None:
-                    pause_time = (time - previous_timestamp) / time_scale
-                    pause_time = max(0.000001, pause_time) # ensure pause time does not evaluate to zero
-                    pause_time = min(2.0, pause_time) # cap max pause time for differences between days.
-                    print pause_time
-                    plt.pause(pause_time)
-                else:
-                    plt.pause(0.000001)
-
-                previous_timestamp = time
-                plt.gcf().clear()
-
-
-    def run_static_test(self, previous_sensor_data_filepath, current_sensor_data_filepath):
-        # open data files
-        previous_data_file = open(previous_sensor_data_filepath, "r")
         current_data_file = open(current_sensor_data_filepath, "r")
 
         # load up the base placer
-        base_placer = BasePlacer(self.slam_map_filepath, self.sensor_map_filepath, previous_sensor_data_filepath, self.config)
-
+        base_placer = BasePlacer(self.slam_map_filepath,
+                                 self.sensor_map_filepath,
+                                 previous_sensor_data_filepath,
+                                 self.config)
         chosen_point = base_placer.get_best_point()
 
+        # run simulation until we have  no other data
         distances = []
-        distance = self.step(chosen_point, current_data_file)
+        flag, results = self.step(chosen_point, current_data_file)
 
-        while distance is not None:
-            if distance < 9000:
-                distances.append(distance)
-            distance = self.step(chosen_point, current_data_file)
+        while flag != "no_more_data":
+            if flag == "all_good":
+                distances.append(results['distance'])
 
-        np_distances = np.array(distances)
-        average = np.average(np_distances)
-        maximum_distance = np.amax(np_distances)
+                # display the simulator step
+                self.display_simulator_step(chosen_point,
+                                            results['point'],
+                                            results['path'])
 
-        print "average distance: ", average
+            flag, results = self.step(chosen_point, current_data_file)
+
+        # extract and display statistics
+        average_distance = np.average(distances)
+        maximum_distance = np.amax(distances)
+
+        print "average distance: ", average_distance
         print "maximum distance: ", maximum_distance
-        plt.show()
 
-    def temp_step(self, chosen_point, data_file):
-        point, data = self._get_next_point(data_file, self.sensor_map, self.ignored_sensors)
-
-        if point is None:
-            return None, None, None, None
-
-        # apply offset
-        point_x = int(point[0] / self.config.map_resolution + self.config.slam_origin[0])
-        point_y = int(point[1] / self.config.map_resolution + self.config.slam_origin[1])
-
-        point = (point_x, point_y)
-
-        # get distance
-        distance, path = self.shortest_paths.run_shortest_paths(point, chosen_point)
-        
-        # check we actually got a distance.
-        if distance is None:
-            return 999999.9, None, point, data
-
-        distance = distance * self.config.map_resolution
-
-        return distance, path, point, data
+        return average_distance, maximum_distance
 
     def step(self, chosen_point, data_file):
         """ run a single step of the simulation
 
-        in this case get the next sensor trigger and tell how far it is from the given map value
+        get the next sensor trigger from the file and check how far it is from
+        the chosen point.
+
+        Note that there are a few cases that can happen in any simulator step:
+            all good - no problems. results is the full tuple
+            no more data - there is no more data available in the data file.
+                           results will be None.
+            path not found - shortest paths could not find a path between the
+                             two values
+
+        inputs:
+            chosen_point - point chosen by the algorithm to be evaluated
+            data_file - file of sensor triggers
+
+        returns:
+            flag - string - flag marking the case we returned out of
+                            any of: ('path_not_found', 'no_more_data', 'all_good')
+            results - dictionary (distance, path, point, data) - results of the time step
+                distance - float - distance in meters needed for the chosen point to
+                                   get to the next point from the data file
+                path - list(points) - list of points to get from the chosen point to
+                                      the next point from the data file.
+                data - DataLine - data from the relevant line of the data file.
 
         """
 
-        point, time, date = self._get_next_point(data_file, self.sensor_map, self.ignored_sensors)
+        results = {}
+
+        # get the next batch of information from the data file
+        point, data = self._get_next_point(data_file, self.sensor_map, self.ignored_sensors)
 
         if point is None:
-            return None
+            # data file has no more points
+            return 'no_more_data', None
 
         # apply offset
         point_x = int(point[0] / self.config.map_resolution + self.config.slam_origin[0])
@@ -195,19 +144,28 @@ class Simulator:
 
         point = (point_x, point_y)
 
-        # get distance
+        # get distance and path
         distance, path = self.shortest_paths.run_shortest_paths(point, chosen_point)
-        
+
         # check we actually got a distance.
         if distance is None:
-            return 999999.9
+            # could not find a path between the chosen point and point
+            results['data'] = data
+            return 'path_not_found', results
 
         distance = distance * self.config.map_resolution
 
-        print distance
+        results['distance'] = distance
+        results['path'] = path
+        results['point'] = point
+        results['data'] = data
+        return 'all_good', results
 
+    def display_simulator_step(self, chosen_point, next_point, path):
         # display the points and slam map
         plt.imshow(np.transpose(self.slam_map.map), cmap='hot', interpolation='nearest')
+
+        point = next_point
 
         x, y = zip(*path)
         plt.scatter(y, x)
@@ -222,8 +180,6 @@ class Simulator:
         plt.pause(0.00001)
         plt.gcf().clear()
 
-        return distance
-
     def _get_next_point(self, smarthome_data_file, sensor_map, ignored_sensors):
         while True:
             next_line = smarthome_data_file.readline()
@@ -234,7 +190,9 @@ class Simulator:
 
             data = DataLine(next_line)
 
-            if data.sensor_type == "Control4-Motion" and data.message == "ON" and data.sensor_name not in ignored_sensors:
+            if data.sensor_type == "Control4-Motion" \
+               and data.message == "ON" \
+               and data.sensor_name not in ignored_sensors:
                 point = sensor_map[data.sensor_name]
                 return point, data
 
@@ -248,8 +206,8 @@ def main():
     config = Config(config_filepath)
 
     simulator = Simulator(sensor_list_filepath, slam_data_filepath, config_filepath)
-    #simulator.run_static_test(previous_smarthome_data_filepath, current_smarthome_data_filepath)
-    simulator.run_dynamic_test(previous_smarthome_data_filepath)
+    simulator.run_static_test(previous_smarthome_data_filepath, current_smarthome_data_filepath)
+    #simulator.run_dynamic_test(previous_smarthome_data_filepath)
 
 if __name__ == "__main__":
     main()
