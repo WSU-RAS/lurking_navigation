@@ -103,7 +103,7 @@ class LurkingAI():
         wa_value = -(get_point_distance(from_point, to_point)**2) * self.wa_weight
 
         # get path map value
-        path_value = -self.path_map_array[i, j] * self.path_weight
+        path_value = -self.historical_pathmap[i, j] * self.path_weight
 
         return wa_value + path_value
 
