@@ -1,4 +1,5 @@
-""" python lurking_ai.py ~/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt """
+""" python lurking_ai.py ~/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/smarthome_data/tokyo_slam_map.txt 
+ """
 
 #!/usr/bin/env python
 """
