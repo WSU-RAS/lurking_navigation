@@ -44,8 +44,8 @@ class LurkingAI():
         self.path_weight = 1500.0
         self.dynamic_heatmap = dynamic_heatmap
         self.slam_map = SlamMap(slam_data_filepath, config)
-        # set offset of dynamic heatmap 
         self.reachability_map = ReachabilityMap(self.slam_map)
+        self.simulated = simulated
         
         # Create a pathmap based on the heatmap 
         self.path_map_array = PathMap(dynamic_heatmap).get_as_array()
@@ -135,8 +135,12 @@ class LurkingAI():
         Inform the heatmap handler that sensor was triggered
     """
     def update_heatmap(self, data):
-        self.dynamic_heatmap.update_heatmap(data.sensor_name) 
-        #self.dynamic_heatmap.display_heatmap() 
+        if self.simulated: 
+            self.dynamic_heatmap.update_heatmap(data.sensor_name) 
+        else:
+            self.dynamic_heatmap.update_heatmap(data.name) 
+
+        self.dynamic_heatmap.display_heatmap() 
 
     """
         Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
@@ -154,6 +158,8 @@ class LurkingAI():
         self.average_point = weighted_average
         landing_zone = weighted_average
 
+        print weighted_average
+
         # Combine these somehow to determine landing zone 
 
         self.dynamic_heatmap.mark_spot_on_map(landing_zone)
@@ -161,7 +167,8 @@ class LurkingAI():
         self._build_map() 
 
         landing_zone = self.get_best_point() 
-        #print landing_zone
+
+        print landing_zone
 
         return landing_zone
 

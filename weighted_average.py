@@ -35,7 +35,8 @@ class WeightedAverage():
         x_average = 0
         y_average = 0
 
-        self.heatmap = self.heatmap.get_heatmap_array()
+        # self.heatmap = self.heatmap.get_heatmap_array()
+        self.heatmap = self.heatmap.get_normalized_heatmap() 
 
         for x_index in range(len(self.heatmap)):
             for y_index in range(len(self.heatmap[0])):
@@ -57,4 +58,3 @@ class WeightedAverage():
         plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
         axis.set_ylim(axis.get_ylim()[::-1])
         plt.show()
-
