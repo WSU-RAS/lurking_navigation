@@ -2,16 +2,17 @@
 
 #!/usr/bin/env python
 """
-    LurkingAI listens to sensor data and uses it to create a DynamicHeatmap 
-    object, acquire a weighted average, and create a path map. 
-    This class also imports the reachability map. 
+    LurkingAI listens to sensor data and uses it to create a DynamicHeatmap
+    object, acquire a weighted average, and create a path map.
+    This class also imports the reachability map.
     Those four pieces of information are used to suggest an "optimal" location
-    for Ras to be at every TIME_TICK. 
+    for Ras to be at every TIME_TICK.
 
     Requirements:
     - roscore must be running
     - The publisher must be running in another terminal
 """
+
 import sys
 import rospy
 import numpy as np 
@@ -34,9 +35,9 @@ class LurkingAI():
     """
         Subscribes to sensor data and publishes a landing location for Ras. 
     """
-    def __init__(self, dynamic_heatmap, slam_data_filepath):
+    def __init__(self, dynamic_heatmap, slam_data_filepath, config, simulated=False):
         self.map = None
-        self.average_point = (0,0)
+        self.average_point = (0, 0)
         self.slam_weight = 1.0
         self.wa_weight = 0.1
         self.path_weight = 1500.0
@@ -48,7 +49,8 @@ class LurkingAI():
         # Create a pathmap based on the heatmap 
         self.path_map_array = PathMap(dynamic_heatmap).get_as_array()
 
-        self.listener()
+        if simulated is False:
+            self.listener()
 
     def _build_map(self):
         # find the value of each point
@@ -132,33 +134,35 @@ class LurkingAI():
         Inform the heatmap handler that sensor was triggered
     """
     def update_heatmap(self, data):
-        dynamic_heatmap.update_heatmap(data.name) 
-        dynamic_heatmap.display_heatmap() 
+        self.dynamic_heatmap.update_heatmap(data.sensor_name) 
+        #self.dynamic_heatmap.display_heatmap() 
 
     """
         Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
     """
-    def timer_callback(self, data):
-        dynamic_heatmap.decay_heatmap()
+    def timer_callback(self, data=None):
+        self.dynamic_heatmap.decay_heatmap()
 
     """
         Using the heatmap, pathmap, and weighted average, returns an "optimal"
         landing zone for Ras at this current moment. 
     """
-    def get_landing_zone(self, data):
+    def get_landing_zone(self, data=None):
         # Use the dynamic_heatmap to grab the weighted average 
-        weighted_average = WeightedAverage(dynamic_heatmap).get_weighted_average_point()
+        weighted_average = WeightedAverage(self.dynamic_heatmap).get_weighted_average_point()
         self.average_point = weighted_average
         landing_zone = weighted_average
 
         # Combine these somehow to determine landing zone 
 
-        dynamic_heatmap.mark_spot_on_map(landing_zone)
+        self.dynamic_heatmap.mark_spot_on_map(landing_zone)
 
         self._build_map() 
 
         landing_zone = self.get_best_point() 
-        print landing_zone
+        #print landing_zone
+
+        return landing_zone
 
 if __name__ == "__main__":
     # Acquire filepaths 
@@ -171,5 +175,5 @@ if __name__ == "__main__":
     dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config) 
 
     # Create a LurkingAI object that sends information to the heatmap 
-    lurking_ai = LurkingAI(dynamic_heatmap, slam_map_filepath)
+    lurking_ai = LurkingAI(dynamic_heatmap, slam_map_filepath, config)
 

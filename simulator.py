@@ -8,22 +8,22 @@ import matplotlib.pyplot as plt
 from config import Config
 from heatmap import get_sensor_map, DataLine
 from slam_map import SlamMap
-from path_map import get_point_distance
 from reachability_map import ReachabilityMap
 
 # util
 from util.shortest_paths import ShortestPaths
 from overlay import get_custom_colormap_green
+from lurking_ai import TIME_TICK
 
 # algorithms to evaluate
 from base_placement_algorithm import BasePlacer
+from lurking_ai import LurkingAI
 from dynamic_heatmap import DynamicHeatmap
-
 
 class Simulator:
     """ Simulator environment for playing back sensor data
 
-    We want to take in a file of sensor triggers and play it back to both 
+    We want to take in a file of sensor triggers and play it back to both
     run our real time algorithms and evaluate algorithms against battery life
     and DTD (Distance to delivery)
 
@@ -42,11 +42,116 @@ class Simulator:
 
         self.shortest_paths = ShortestPaths(self.reachability_map.map)
 
-    def run_static_test(self, 
+    def run_dynamic_test(self, sensor_data_filepath, display=True):
+        """ test the real time lurking algorithm
+
+        get the best point recommended by the algorithm at every timestep
+        from the sensor data file and check how it does at every step.
+
+        input:
+            sensor data filepath - filepath to data to test against.
+
+        returns:
+            average distance - average distance of the point chosen by the
+                lurking algorithm to the actual position given by the data file
+            maximum distance - maximum distance from the point chosen by the
+                lurking algorithm to the actual position given by the data file
+
+        """
+
+        # constants
+        decay_time = 60 # time between decay points in seconds
+        time_scale = 5000.0 # multiplier appplied to simulated time
+        min_time_delay = 0.000001
+        max_time_delay = 2.0
+        start_point = (48, 45)
+        print_delay = 100
+
+        # open data files
+        sensor_data_file = open(sensor_data_filepath, "r")
+
+        # start lurking AI in simulator mode
+        dynamic_heatmap = DynamicHeatmap(self.sensor_map_filepath, self.config)
+        lurking_ai = LurkingAI(dynamic_heatmap, self.slam_map_filepath,
+                               self.config, simulated=True)
+        decay_time = TIME_TICK
+
+        # run the simulator until we run out of data
+        distances = []
+        previous_decay_time = None
+        previous_timestamp = None
+        num_steps = 0
+        chosen_point = start_point # hardcode for now
+
+        flag, results = self.step(chosen_point, sensor_data_file)
+
+        while flag != 'no_more_data':
+            # choose a point
+            chosen_point = lurking_ai.get_landing_zone()
+
+            if flag == 'all_good':
+                distances.append(results['distance'])
+
+                current_time = results['data'].timestamp
+
+                # run decay times on the heatmap
+                if previous_decay_time != None:
+                    if current_time - previous_decay_time > decay_time:
+                        decay_times_to_run = int(
+                            (current_time - previous_decay_time) / decay_time)
+
+                        # decay as many times as the decay time has passed
+                        for _ in xrange(decay_times_to_run):
+                            lurking_ai.timer_callback()
+
+                        # update the previous time
+                        previous_decay_time += decay_times_to_run * decay_time
+                else:
+                    previous_decay_time = current_time
+
+                # update the lurker
+                lurking_ai.update_heatmap(results['data'])
+
+                # calculate time delay
+                if display is True:
+                    if previous_timestamp is not None:
+                        time_delay = (current_time - previous_timestamp) / time_scale
+                        time_delay = max(min_time_delay, time_delay) # ensure time delay
+                            # does not evaluate to zero
+                        time_delay = min(max_time_delay, time_delay) # cap max time
+                            # delay for when we move to the next day
+                    else:
+                        time_delay = min_time_delay
+
+                    previous_timestamp = current_time
+
+                    # display
+                    self.display_simulator_step(chosen_point, results['point'],
+                                                results['path'], time_delay)
+
+                if num_steps % print_delay == 0:
+                    print "finished step: ", num_steps
+
+
+            # run a step
+            flag, results = self.step(chosen_point, sensor_data_file)
+            num_steps += 1
+
+        # extract and display statistics
+        average_distance = np.average(distances)
+        maximum_distance = np.amax(distances)
+
+        print "average distance: ", average_distance
+        print "maximum distance: ", maximum_distance
+
+        return average_distance, maximum_distance
+
+
+    def run_static_test(self,
                         previous_sensor_data_filepath,
                         current_sensor_data_filepath):
         """ test the static base placement algorithm
-        
+
         get the best point from the base placement algorithm from a previous
         data file and run it against a more recent data file to check how
         well it does in terms of distance.
@@ -161,7 +266,22 @@ class Simulator:
         results['data'] = data
         return 'all_good', results
 
-    def display_simulator_step(self, chosen_point, next_point, path):
+    def display_simulator_step(self, chosen_point, next_point, path,
+                               time_delay=0.000001):
+        """ display a single step of the simulator
+
+        displays the slam map and overlays the chosen point, next point,
+        and the path between the two.
+
+        input:
+            chosen_point - tuple(int(x), int(y)) - point chosen by the algorithm
+            next_point - tuple(int(x), int(y)) - point given by the data file
+            path - list(tuple(int(x), int(y))) - list of points that make up
+                the path between the chosen point and the next point.
+            time_delay - float - time delay in seconds to hang before returning
+
+        returns: None
+        """
         # display the points and slam map
         plt.imshow(np.transpose(self.slam_map.map), cmap='hot', interpolation='nearest')
 
@@ -177,10 +297,27 @@ class Simulator:
         if axis.get_ylim()[0] > axis.get_ylim()[1]:
             axis.set_ylim(axis.get_ylim()[::-1])
 
-        plt.pause(0.00001)
+        plt.pause(time_delay)
         plt.gcf().clear()
 
     def _get_next_point(self, smarthome_data_file, sensor_map, ignored_sensors):
+        """ get the next valid point from the data file
+
+        run through the data file until we find a sensor trigger that is the
+        right type and is not in the list of ignored sensors.
+
+        inputs:
+            smarthome_data_file - file - data file to look through
+            sensor_map - dictionary{string(sensor_name):point(location)} -
+                map of sensor locations
+            ignored_sensors - list(string(sensor_name)) - list of sensors that
+                we do not have locations for.
+
+        returns:
+            point - tuple(float(x), float(y)) - location of the next sensor
+                triggered.
+            data - DataLine - data container of information about the trigger
+        """
         while True:
             next_line = smarthome_data_file.readline()
 
@@ -203,11 +340,9 @@ def main():
     current_smarthome_data_filepath = sys.argv[4]
     config_filepath = sys.argv[5]
 
-    config = Config(config_filepath)
-
     simulator = Simulator(sensor_list_filepath, slam_data_filepath, config_filepath)
-    simulator.run_static_test(previous_smarthome_data_filepath, current_smarthome_data_filepath)
-    #simulator.run_dynamic_test(previous_smarthome_data_filepath)
+    #simulator.run_static_test(previous_smarthome_data_filepath, current_smarthome_data_filepath)
+    simulator.run_dynamic_test(previous_smarthome_data_filepath, display=True)
 
 if __name__ == "__main__":
     main()

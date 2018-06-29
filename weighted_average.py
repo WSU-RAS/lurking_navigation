@@ -16,7 +16,6 @@ import numpy as np
 ARBITRARY_LARGE_NUMBER = 9999
 
 from heatmap import Heatmap
-from dynamic_heatmap import DynamicHeatmap
 
 class WeightedAverage():
     """
@@ -30,13 +29,13 @@ class WeightedAverage():
         self.map_resolution = 0.125
         self.number_of_sensors = 0
         self.heatmap = heatmap
-        self.result = (0,0)
+        self.result = (0, 0)
 
     def get_weighted_average_point(self):
         x_average = 0
         y_average = 0
 
-        self.heatmap = self.heatmap.get_normalized_heatmap() 
+        self.heatmap = self.heatmap.get_heatmap_array()
 
         for x_index in range(len(self.heatmap)):
             for y_index in range(len(self.heatmap[0])):
