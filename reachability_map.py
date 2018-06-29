@@ -19,7 +19,7 @@ class ReachabilityMap:
         self.start_x = 45
         self.start_y = 30
         self.kernel_size = 2 # size from edge to center of kernel
-        self.impassability_cutoff = 30
+        self.impassability_cutoff = 70
 
         # variables
         self.map = None

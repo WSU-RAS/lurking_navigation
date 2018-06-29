@@ -15,7 +15,9 @@ from static_heatmap import StaticHeatmap
 from path_map import PathMap
 from weighted_average import WeightedAverage
 
+# utility
 from path_map import get_point_distance
+from overlay import get_custom_colormap_green
 
 class BasePlacer:
     """ Finds where the robot should be placed based on our metrics
@@ -155,6 +157,7 @@ class BasePlacer:
         top_map = np.true_divide(top_map, amax)
 
         plt.imshow(np.transpose(top_map), cmap='hot', interpolation='nearest')
+        plt.imshow(np.transpose(self.slam_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')
 
         axis = plt.gca()
         axis.set_ylim(axis.get_ylim()[::-1])
@@ -173,8 +176,8 @@ def main():
                              sensor_list_filepath, 
                              smarthome_data_filepath, 
                              config)
-    #base_placer.display_top(0.1)
-    base_placer.display_as_heatmap()
+    base_placer.display_top(0.1)
+    #base_placer.display_as_heatmap()
 
 if __name__ == "__main__":
     main()
