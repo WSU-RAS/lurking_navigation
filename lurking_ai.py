@@ -43,12 +43,15 @@ class LurkingAI():
         self.wa_weight = 0.1
         self.path_weight = 1500.0
         self.dynamic_heatmap = dynamic_heatmap
+
         self.slam_map = SlamMap(slam_data_filepath, config)
         self.reachability_map = ReachabilityMap(self.slam_map)
         self.simulated = simulated
-        
-        # Create a pathmap based on the heatmap 
-        self.path_map_array = PathMap(dynamic_heatmap).get_as_array()
+        self.path_map_array = PathMap(self.dynamic_heatmap).get_as_array()
+
+        # The historical heatmap doesn't decay values over time
+        self.historical_heatmap = DynamicHeatmap(sensor_list_filepath, config)
+        self.historical_pathmap = PathMap(self.historical_heatmap).get_as_array() 
 
         if simulated is False:
             self.listener()
@@ -127,7 +130,7 @@ class LurkingAI():
     def listener(self):
         rospy.init_node('sensor_listener', anonymous=True) 
         rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
-        rospy.Timer(rospy.Duration(1), self.get_landing_zone)
+        rospy.Timer(rospy.Duration(UPDATE_RAS), self.get_landing_zone)
         rospy.Subscriber("sensor_tripped", SensorPub, self.update_heatmap)
         rospy.spin() 
 
@@ -137,8 +140,11 @@ class LurkingAI():
     def update_heatmap(self, data):
         if self.simulated: 
             self.dynamic_heatmap.update_heatmap(data.sensor_name) 
+            self.historical_heatmap.update_heatmap(data.sensor_name)
+            self.historical_pathmap = PathMap(self.historical_heatmap).get_as_array() 
         else:
             self.dynamic_heatmap.update_heatmap(data.name) 
+            self.historical_heatmap.update_heatmap(data.name)
 
         self.dynamic_heatmap.display_heatmap() 
 
@@ -158,17 +164,10 @@ class LurkingAI():
         self.average_point = weighted_average
         landing_zone = weighted_average
 
-        print weighted_average
-
-        # Combine these somehow to determine landing zone 
-
-        self.dynamic_heatmap.mark_spot_on_map(landing_zone)
-
         self._build_map() 
 
         landing_zone = self.get_best_point() 
-
-        print landing_zone
+        self.dynamic_heatmap.mark_spot_on_map(landing_zone)
 
         return landing_zone
 
