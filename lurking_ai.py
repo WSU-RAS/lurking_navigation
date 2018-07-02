@@ -130,7 +130,7 @@ class LurkingAI():
     def listener(self):
         rospy.init_node('sensor_listener', anonymous=True) 
         rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
-        rospy.Timer(rospy.Duration(UPDATE_RAS), self.get_landing_zone)
+        rospy.Timer(rospy.Duration(5), self.get_landing_zone)
         rospy.Subscriber("sensor_tripped", SensorPub, self.update_heatmap)
         rospy.spin() 
 
@@ -169,7 +169,21 @@ class LurkingAI():
         landing_zone = self.get_best_point() 
         self.dynamic_heatmap.mark_spot_on_map(landing_zone)
 
+        self._move_ras_to(landing_zone)
+
         return landing_zone
+
+    def _move_ras_to(self, landing_zone):
+        print "done it"
+
+        """
+        rospy.wait_for_service('goto_xy') #wait for service to start, need to start yourself (run file)
+        goto_spot = rospy.ServiceProxy('goto_xy', Goto_xy)
+
+        Using the service
+        move = goto_spot(x, y)
+        return move.response  #Not really required as far as I know. (
+        """
 
 if __name__ == "__main__":
     # Acquire filepaths 
