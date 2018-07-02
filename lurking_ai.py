@@ -25,6 +25,7 @@ from slam_map import SlamMap
 from path_map import PathMap
 from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
+from ras_msgs.srv import Goto_xy
 from config import Config
 
 from path_map import get_point_distance
@@ -174,16 +175,13 @@ class LurkingAI():
         return landing_zone
 
     def _move_ras_to(self, landing_zone):
-        print "done it"
-
-        """
-        rospy.wait_for_service('goto_xy') #wait for service to start, need to start yourself (run file)
+        rospy.wait_for_service('goto_xy')
         goto_spot = rospy.ServiceProxy('goto_xy', Goto_xy)
 
-        Using the service
-        move = goto_spot(x, y)
-        return move.response  #Not really required as far as I know. (
-        """
+        move = goto_spot(landing_zone[0], landing_zone[1])
+
+        return move.response
+
 
 if __name__ == "__main__":
     # Acquire filepaths 
