@@ -12,6 +12,7 @@ from static_heatmap import StaticHeatmap
 from path_map import PathMap
 from weighted_average import WeightedAverage
 from reachability_map import ReachabilityMap
+from wall_map import WallMap
 
 def main():
     # get command line arguments
@@ -29,7 +30,7 @@ def main():
 
     # get heatmap
     heatmap = StaticHeatmap(sensor_map_filepath, smarthome_data_filepath, config)
-    heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
+    #heatmap.set_offset(slam_map.origin[0], slam_map.origin[1])
 
     # get path map
     path_map = PathMap(heatmap)
@@ -40,6 +41,9 @@ def main():
     # get the reachability map
     reachability_map = ReachabilityMap(slam_map)
 
+    # get the wall map
+    wall_map = WallMap()
+
     ### plot all the things to plot
     # plot the path map
     path_array = path_map.get_as_array()
@@ -47,17 +51,24 @@ def main():
 
     # plot the heatmap
     heatmap = heatmap.get_heatmap_array()
-    plt.imshow(np.transpose(heatmap), cmap=get_custom_colormap_blue(), interpolation='nearest')
+    #plt.imshow(np.transpose(heatmap), cmap=get_custom_colormap_blue(), interpolation='nearest')
 
     # plot the slam map
-    plt.imshow(np.transpose(slam_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')
+    #plt.imshow(np.transpose(slam_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')
 
     # plot the weighted average
     average_point = weighted_average.get_weighted_average_point()
     #plt.plot(average_point[0], average_point[1], 'go')
 
+    # plot the wall map
+    plt.imshow(np.transpose(wall_map.getMap()), cmap=get_custom_colormap_green())
+
     # plot the reachability map
-    #plt.imshow(np.transpose(reachability_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
+    plt.imshow(np.transpose(reachability_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
+
+    
+
+    
 
     # flip y axis
     axis = plt.gca()
