@@ -1,7 +1,8 @@
-""" python lurking_ai.py ~/ras/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/ras/smarthome_data/tokyo_slam_map.txt 
+#!/usr/bin/env python
+""" python lurking_ai.py ~/ras/src/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/ras/src/smarthome_data/tokyo_slam_map.txt 
  """
 
-#!/usr/bin/env python
+
 """
     LurkingAI listens to sensor data and uses it to create a DynamicHeatmap
     object, acquire a weighted average, and create a path map.

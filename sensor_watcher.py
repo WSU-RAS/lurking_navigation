@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import copy
 import datetime
 import optparse

@@ -1,9 +1,10 @@
+#!/usr/bin/env python
+
 """
     DynamicHeatmap is a subclass of Heatmap that takes in a list of sensors and updates a heatmap 
     whenever those sensors are triggered. 
 """
 
-#!/usr/bin/env python
 import math
 import random
 import sys

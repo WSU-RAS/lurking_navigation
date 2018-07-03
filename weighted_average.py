@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
     Accepts a heatmap and generates a single point that represents the average
     location of the occupant over a certain period of time. 

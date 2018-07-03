@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
     Accepts data collected from a smarthome and creates a normalized heatmap
     reflecting how often each sensor is triggered. 
