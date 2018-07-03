@@ -14,6 +14,7 @@ from heatmap import Heatmap
 from static_heatmap import StaticHeatmap
 from path_map import PathMap
 from weighted_average import WeightedAverage
+from wall_map import WallMap
 
 # utility
 from path_map import get_point_distance
@@ -33,6 +34,7 @@ class BasePlacer:
         self.slam_weight = 1.0
         self.wa_weight = 0.1
         self.path_weight = 1500.0
+        self.wall_weight = 0.5
 
         # load slam map
         self.slam_map = slam_map = SlamMap(slam_data_filepath, config)
@@ -52,6 +54,9 @@ class BasePlacer:
         # load weighted average
         self.weighted_average = WeightedAverage(static_heatmap)
         self.average_point = self.weighted_average.get_weighted_average_point()
+
+        self.wall_map = WallMap()
+        self.wall_map_array = self.wall_map.getMap()
 
         self._build_map()
 
@@ -108,7 +113,10 @@ class BasePlacer:
         # get path map value
         path_value = -self.path_map_array[i, j] * self.path_weight
 
-        return wa_value + path_value
+        # get wall map value
+        wall_value = self.wall_map_array[i, j] * self.wall_weight
+
+        return wa_value + path_value + wall_value
 
     def get_best_point(self):
         """ get the location of the best point
@@ -176,8 +184,8 @@ def main():
                              sensor_list_filepath, 
                              smarthome_data_filepath, 
                              config)
-    base_placer.display_top(0.1)
-    #base_placer.display_as_heatmap()
+    #base_placer.display_top(0.1)
+    base_placer.display_as_heatmap()
 
 if __name__ == "__main__":
     main()
