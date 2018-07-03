@@ -13,6 +13,7 @@ import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def get_sensor_map(filepath):
     """ get sensor map
 
@@ -39,15 +40,17 @@ def get_sensor_map(filepath):
             line = line.replace('\r\n', '')
             sensor_information = line.split()
 
-            # Only add the sensor to the map if we know where it is on the map 
+            # Only add the sensor to the map if we know where it is on the map
             if (len(sensor_information) > 1):
-                sensor_map[sensor_information[0]] = (float(sensor_information[1]), float(sensor_information[2]))
-            elif (len(sensor_information) == 1): 
-                # Add to the list of ignored sensors since it doesn't have coordinates 
+                sensor_map[sensor_information[0]] = (
+                    float(sensor_information[1]), float(sensor_information[2]))
+            elif (len(sensor_information) == 1):
+                # Add to the list of ignored sensors since it doesn't have coordinates
                 ignored_sensors.append(sensor_information[0])
-    
-    data_file.close() 
+
+    data_file.close()
     return sensor_map, ignored_sensors
+
 
 class Heatmap():
     """ Heatmap class for creating a grid of the smarthome, where each spot 
@@ -58,6 +61,7 @@ class Heatmap():
     No public attributes
 
     """
+
     def __init__(self, sensor_list_filepath, config):
         """ initialize the heatmap sensor list and config
 
@@ -75,7 +79,8 @@ class Heatmap():
         self.x_offset = 0
         self.y_offset = 0
 
-        self.sensor_map, self.ignored_sensors = get_sensor_map(sensor_list_filepath)
+        self.sensor_map, self.ignored_sensors = get_sensor_map(
+            sensor_list_filepath)
 
         offset_point = config.slam_origin
         self.set_offset(offset_point[0], offset_point[1])
@@ -111,8 +116,10 @@ class Heatmap():
         # adjust pointmap
         new_point_map = {}
         for point, value in self.point_map.iteritems():
-            new_x = point[0] + (new_x_offset - old_x_offset) * self.map_resolution
-            new_y = point[1] + (new_y_offset - old_y_offset) * self.map_resolution
+            new_x = point[0] + (new_x_offset - old_x_offset) * \
+                self.map_resolution
+            new_y = point[1] + (new_y_offset - old_y_offset) * \
+                self.map_resolution
             new_point = (new_x, new_y)
 
             new_point_map[new_point] = value
@@ -122,8 +129,10 @@ class Heatmap():
         # adjust sensor map
         new_sensor_map = {}
         for sensor, point in self.sensor_map.iteritems():
-            new_x = point[0] + (new_x_offset - old_x_offset) * self.map_resolution
-            new_y = point[1] + (new_y_offset - old_y_offset) * self.map_resolution
+            new_x = point[0] + (new_x_offset - old_x_offset) * \
+                self.map_resolution
+            new_y = point[1] + (new_y_offset - old_y_offset) * \
+                self.map_resolution
             new_point = (new_x, new_y)
 
             new_sensor_map[sensor] = new_point
@@ -145,9 +154,10 @@ class Heatmap():
 
         """
         heatmap = [
-                    [0.0 for j in range(int(math.ceil(self.map_height / self.map_resolution)))] 
-                    for i in range(int(math.ceil(self.map_width / self.map_resolution)))
-                  ]
+            [0.0 for j in range(
+                int(math.ceil(self.map_height / self.map_resolution)))]
+            for i in range(int(math.ceil(self.map_width / self.map_resolution)))
+        ]
 
         # load things into the heatmap
         for point, value in self.point_map.iteritems():
@@ -164,16 +174,19 @@ class Heatmap():
         axis = plt.gca()
 
         # display heatmap
-        plt.imshow(np.transpose(np_heatmap), cmap='hot', interpolation='nearest')
+        plt.imshow(np.transpose(np_heatmap),
+                   cmap='hot', interpolation='nearest')
 
         # display sensor text
         for sensor_name, point in self.sensor_map.iteritems():
             x = int(point[0] / self.map_resolution) + 1
             y = int(point[1] / self.map_resolution) + 1
-            plt.text(x, y, sensor_name, bbox=dict(facecolor='white', alpha=0.8))
+            plt.text(x, y, sensor_name, bbox=dict(
+                facecolor='white', alpha=0.8))
 
         axis.set_ylim(axis.get_ylim()[::-1])
         plt.show()
+
 
 class DataLine():
     """ Data line
@@ -182,14 +195,16 @@ class DataLine():
     Basically just a container class.
 
     """
+
     def __init__(self, line):
         split = line.split()
 
         self.date = split[0]
         self.time = split[1]
-        
+
         time_string = self.date + " " + self.time.split(".")[0]
-        self.timestamp = time.mktime(datetime.datetime.strptime(time_string, "%Y-%m-%d %H:%M:%S").timetuple())
+        self.timestamp = time.mktime(datetime.datetime.strptime(
+            time_string, "%Y-%m-%d %H:%M:%S").timetuple())
 
         self.sensor_name = split[2]
         self.message = split[3]

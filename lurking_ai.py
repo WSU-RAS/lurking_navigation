@@ -1,4 +1,4 @@
-""" python lurking_ai.py ~/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/smarthome_data/tokyo_slam_map.txt 
+""" python lurking_ai.py ~/ras/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/ras/smarthome_data/tokyo_slam_map.txt 
  """
 
 #!/usr/bin/env python
@@ -16,7 +16,7 @@
 
 import sys
 import rospy
-import numpy as np 
+import numpy as np
 
 from dynamic_heatmap import DynamicHeatmap
 from reachability_map import ReachabilityMap
@@ -30,13 +30,15 @@ from config import Config
 
 from path_map import get_point_distance
 
-TIME_TICK  = 60    # in seconds
+TIME_TICK = 60    # in seconds
 UPDATE_RAS = 300   # in seconds
+
 
 class LurkingAI():
     """
         Subscribes to sensor data and publishes a landing location for Ras. 
     """
+
     def __init__(self, dynamic_heatmap, slam_data_filepath, config, simulated=False):
         self.map = None
         self.average_point = (0, 0)
@@ -52,7 +54,8 @@ class LurkingAI():
 
         # The historical heatmap doesn't decay values over time
         self.historical_heatmap = DynamicHeatmap(sensor_list_filepath, config)
-        self.historical_pathmap = PathMap(self.historical_heatmap).get_as_array() 
+        self.historical_pathmap = PathMap(
+            self.historical_heatmap).get_as_array()
 
         if simulated is False:
             self.listener()
@@ -91,7 +94,7 @@ class LurkingAI():
 
                 if reachability_map[i, j] > 0:
                     masked_map[i, j] = placement_map[i, j]
-        
+
         return masked_map
 
     def find_value(self, i, j):
@@ -101,7 +104,8 @@ class LurkingAI():
         # get weighted average value
         from_point = (i, j)
         to_point = self.average_point
-        wa_value = -(get_point_distance(from_point, to_point)**2) * self.wa_weight
+        wa_value = -(get_point_distance(from_point, to_point)
+                     ** 2) * self.wa_weight
 
         # get path map value
         path_value = -self.historical_pathmap[i, j] * self.path_weight
@@ -114,7 +118,7 @@ class LurkingAI():
         returns:
             tuple (x, y) - indecies of the best scoring map location
         """
-        max_value = 0.0 # minimum value of the map is 0.0
+        max_value = 0.0  # minimum value of the map is 0.0
         best_point = (-1, -1)
 
         for i in range(self.map.shape[0]):
@@ -128,30 +132,34 @@ class LurkingAI():
     """
         Creates a listener node that acquires sensor data continuously. 
     """
+
     def listener(self):
-        rospy.init_node('sensor_listener', anonymous=True) 
+        rospy.init_node('sensor_listener', anonymous=True)
         rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
         rospy.Timer(rospy.Duration(5), self.get_landing_zone)
         rospy.Subscriber("sensor_tripped", SensorPub, self.update_heatmap)
-        rospy.spin() 
+        rospy.spin()
 
     """
         Inform the heatmap handler that sensor was triggered
     """
+
     def update_heatmap(self, data):
-        if self.simulated: 
-            self.dynamic_heatmap.update_heatmap(data.sensor_name) 
+        if self.simulated:
+            self.dynamic_heatmap.update_heatmap(data.sensor_name)
             self.historical_heatmap.update_heatmap(data.sensor_name)
-            self.historical_pathmap = PathMap(self.historical_heatmap).get_as_array() 
+            self.historical_pathmap = PathMap(
+                self.historical_heatmap).get_as_array()
         else:
-            self.dynamic_heatmap.update_heatmap(data.name) 
+            self.dynamic_heatmap.update_heatmap(data.name)
             self.historical_heatmap.update_heatmap(data.name)
 
-        self.dynamic_heatmap.display_heatmap() 
+        self.dynamic_heatmap.display_heatmap()
 
     """
         Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
     """
+
     def timer_callback(self, data=None):
         self.dynamic_heatmap.decay_heatmap()
 
@@ -159,15 +167,17 @@ class LurkingAI():
         Using the heatmap, pathmap, and weighted average, returns an "optimal"
         landing zone for Ras at this current moment. 
     """
+
     def get_landing_zone(self, data=None):
-        # Use the dynamic_heatmap to grab the weighted average 
-        weighted_average = WeightedAverage(self.dynamic_heatmap).get_weighted_average_point()
+        # Use the dynamic_heatmap to grab the weighted average
+        weighted_average = WeightedAverage(
+            self.dynamic_heatmap).get_weighted_average_point()
         self.average_point = weighted_average
         landing_zone = weighted_average
 
-        self._build_map() 
+        self._build_map()
 
-        landing_zone = self.get_best_point() 
+        landing_zone = self.get_best_point()
         self.dynamic_heatmap.mark_spot_on_map(landing_zone)
 
         self._move_ras_to(landing_zone)
@@ -184,15 +194,14 @@ class LurkingAI():
 
 
 if __name__ == "__main__":
-    # Acquire filepaths 
+    # Acquire filepaths
     sensor_list_filepath = sys.argv[1]
     config_filepath = sys.argv[2]
     slam_map_filepath = sys.argv[3]
     config = Config(config_filepath)
 
-    # Create a dynamic heatmap object 
-    dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config) 
+    # Create a dynamic heatmap object
+    dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config)
 
-    # Create a LurkingAI object that sends information to the heatmap 
+    # Create a LurkingAI object that sends information to the heatmap
     lurking_ai = LurkingAI(dynamic_heatmap, slam_map_filepath, config)
-

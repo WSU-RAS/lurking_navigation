@@ -8,17 +8,19 @@ import matplotlib.pyplot as plt
 
 from slam_map import SlamMap
 
+
 class ReachabilityMap:
     """ Reachability map
 
     given a slam map finds all the places that are reachable from a set position inside the map
 
     """
+
     def __init__(self, slam_map):
         # constants
         self.start_x = 45
         self.start_y = 30
-        self.kernel_size = 2 # size from edge to center of kernel
+        self.kernel_size = 2  # size from edge to center of kernel
         self.impassability_cutoff = 70
 
         # variables
@@ -86,6 +88,7 @@ class ReachabilityMap:
 
         plt.show()
 
+
 def main():
     slam_map_filepath = sys.argv[1]
 
@@ -93,6 +96,7 @@ def main():
     reachability_map = ReachabilityMap(slam_map)
 
     reachability_map.display_as_heatmap()
+
 
 if __name__ == "__main__":
     main()
