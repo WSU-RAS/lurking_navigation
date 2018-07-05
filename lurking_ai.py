@@ -189,7 +189,10 @@ class LurkingAI():
         rospy.wait_for_service('goto_xy')
         goto_spot = rospy.ServiceProxy('goto_xy', Goto_xy)
 
-        move = goto_spot(landing_zone[0], landing_zone[1])
+        # the landing zone spot makes no sense here because we are
+        # passing in x, y values like 86 or 60 when it needs real values 
+
+        move = goto_spot(2.0, 2.0)
 
         return move.response
 
