@@ -47,6 +47,9 @@ class LurkingAI():
         self.wa_weight = 0.1
         self.path_weight = 1500.0
         self.dynamic_heatmap = dynamic_heatmap
+        self.map_width = config.map_width
+        self.map_height = config.map_height
+        self.map_resolution = config.map_resolution
 
         self.slam_map = SlamMap(slam_data_filepath, config)
         self.reachability_map = ReachabilityMap(self.slam_map)
@@ -189,12 +192,16 @@ class LurkingAI():
         rospy.wait_for_service('goto_xy')
         goto_spot = rospy.ServiceProxy('goto_xy', Goto_xy)
 
-        # the landing zone spot makes no sense here because we are
-        # passing in x, y values like 86 or 60 when it needs real values 
+        destination = self.convert_grid_to_meters(landing_zone)
+        print "ras is going to", destination
 
-        move = goto_spot(2.0, 2.0)
-
+        move = goto_spot(destination[0], destination[1])
         return move.response
+
+    def convert_grid_to_meters(self, gridpoint):
+        gridpoint[0] = gridpoint[0] / self.map_resolution   
+        gridpoint[1] = gridpoint[1] / self.map_resolution 
+        return gridpoint
 
 
 if __name__ == "__main__":
