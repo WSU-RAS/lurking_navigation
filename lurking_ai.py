@@ -199,9 +199,10 @@ class LurkingAI():
         return move.response
 
     def convert_grid_to_meters(self, gridpoint):
-        gridpoint[0] = gridpoint[0] / self.map_resolution   
-        gridpoint[1] = gridpoint[1] / self.map_resolution 
-        return gridpoint
+        result = {}
+        result[0] = gridpoint[0] / self.map_resolution   
+        result[1] = gridpoint[1] / self.map_resolution   
+        return result
 
 
 if __name__ == "__main__":
