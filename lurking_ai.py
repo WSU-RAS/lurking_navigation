@@ -1,3 +1,5 @@
+from __future__ import division
+
 #!/usr/bin/env python
 """ python lurking_ai.py ~/ras/src/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/ras/src/smarthome_data/tokyo_slam_map.txt 
  """
@@ -32,7 +34,7 @@ from config import Config
 from path_map import get_point_distance
 
 TIME_TICK = 60    # in seconds
-UPDATE_RAS = 300   # in seconds
+UPDATE_RAS = 10   # in seconds
 
 
 class LurkingAI():
@@ -140,7 +142,7 @@ class LurkingAI():
     def listener(self):
         rospy.init_node('sensor_listener', anonymous=True)
         rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
-        rospy.Timer(rospy.Duration(5), self.get_landing_zone)
+        rospy.Timer(rospy.Duration(UPDATE_RAS), self.get_landing_zone)
         rospy.Subscriber("sensor_tripped", SensorPub, self.update_heatmap)
         rospy.spin()
 
@@ -179,12 +181,18 @@ class LurkingAI():
         self.average_point = weighted_average
         landing_zone = weighted_average
 
+        print "lz", landing_zone
+
         self._build_map()
 
         landing_zone = self.get_best_point()
         self.dynamic_heatmap.mark_spot_on_map(landing_zone)
 
+        print "marked spot"
+
         self._move_ras_to(landing_zone)
+
+        print "moved the boy"
 
         return landing_zone
 
@@ -199,9 +207,10 @@ class LurkingAI():
         return move.response
 
     def convert_grid_to_meters(self, gridpoint):
-        result = {}
-        result[0] = gridpoint[0] / self.map_resolution   
-        result[1] = gridpoint[1] / self.map_resolution   
+        result = [0,1]
+        result[0] = gridpoint[0] * self.map_resolution   
+        result[1] = gridpoint[1] * self.map_resolution
+        print result    
         return result
 
 
