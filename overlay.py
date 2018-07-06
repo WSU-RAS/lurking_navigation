@@ -13,6 +13,7 @@ from path_map import PathMap
 from weighted_average import WeightedAverage
 from reachability_map import ReachabilityMap
 from wall_map import WallMap
+from cramped_map import CrampedMap
 
 def main():
     # get command line arguments
@@ -41,6 +42,9 @@ def main():
     # get the reachability map
     reachability_map = ReachabilityMap(slam_map)
 
+    # get the cramped spaces map
+    cramped_map = CrampedMap(reachability_map.map)
+
     # get the wall map
     wall_map = WallMap()
 
@@ -61,10 +65,13 @@ def main():
     #plt.plot(average_point[0], average_point[1], 'go')
 
     # plot the wall map
-    plt.imshow(np.transpose(wall_map.getMap()), cmap=get_custom_colormap_green())
+#     plt.imshow(np.transpose(wall_map.getMap()), cmap=get_custom_colormap_green())
 
     # plot the reachability map
-    plt.imshow(np.transpose(reachability_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
+    plt.imshow(np.transpose(reachability_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')
+# 
+    # plot the cramped spaces map
+    plt.imshow(np.transpose(cramped_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
 
     # flip y axis
     axis = plt.gca()
