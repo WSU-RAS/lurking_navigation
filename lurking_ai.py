@@ -2,6 +2,8 @@ from __future__ import division
 
 #!/usr/bin/env python
 """ python lurking_ai.py ~/ras/src/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/ras/src/smarthome_data/tokyo_slam_map.txt 
+
+lab:=True
  """
 
 
@@ -181,19 +183,12 @@ class LurkingAI():
         self.average_point = weighted_average
         landing_zone = weighted_average
 
-        print "lz", landing_zone
-
         self._build_map()
 
         landing_zone = self.get_best_point()
         self.dynamic_heatmap.mark_spot_on_map(landing_zone)
 
-        print "marked spot"
-
         self._move_ras_to(landing_zone)
-
-        print "moved the boy"
-
         return landing_zone
 
     def _move_ras_to(self, landing_zone):
