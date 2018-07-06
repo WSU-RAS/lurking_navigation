@@ -15,6 +15,7 @@ from static_heatmap import StaticHeatmap
 from path_map import PathMap
 from weighted_average import WeightedAverage
 from wall_map import WallMap
+from cramped_map import CrampedMap
 
 # utility
 from path_map import get_point_distance
@@ -35,6 +36,7 @@ class BasePlacer:
         self.wa_weight = 0.1
         self.path_weight = 1500.0
         self.wall_weight = 0.5
+        self.cramped_weight = 100
 
         # load slam map
         self.slam_map = slam_map = SlamMap(slam_data_filepath, config)
@@ -58,6 +60,9 @@ class BasePlacer:
         self.wall_map = WallMap()
         self.wall_map_array = self.wall_map.getMap()
 
+        self.cramped_map = CrampedMap(reachability_map.map)
+        self.cramped_map_array = self.cramped_map.map
+
         self._build_map()
 
     def _build_map(self):
@@ -72,10 +77,10 @@ class BasePlacer:
 
         # rescale to between zero and 1
         # note that all values in the map are less than zero
-        amin = np.amin(placement_map)
-        placement_map = np.subtract(placement_map, amin)
-        amax = np.amax(placement_map)
-        placement_map = np.true_divide(placement_map, amax)
+        # amin = np.amin(placement_map)
+        # placement_map = np.subtract(placement_map, amin)
+        # amax = np.amax(placement_map)
+        # placement_map = np.true_divide(placement_map, amax)
 
         # apply reachability mask
         placement_map = self.apply_reachability_mask(placement_map)
@@ -116,7 +121,10 @@ class BasePlacer:
         # get wall map value
         wall_value = self.wall_map_array[i, j] * self.wall_weight
 
-        return wa_value + path_value + wall_value
+        # get cramped map value
+        cramped_value = -self.cramped_map_array[i, j] * self.cramped_weight
+
+        return wa_value + path_value + wall_value + cramped_value
 
     def get_best_point(self):
         """ get the location of the best point
