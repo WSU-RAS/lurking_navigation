@@ -19,6 +19,8 @@ import sys
 import rospy
 import numpy as np
 
+from util.transform import transform_back_to_slam
+
 from dynamic_heatmap import DynamicHeatmap
 from reachability_map import ReachabilityMap
 from base_placement_algorithm import BasePlacer
@@ -180,6 +182,9 @@ class LurkingAI():
 
         landing_zone = self.get_best_point()
         self.dynamic_heatmap.mark_spot_on_map(landing_zone)
+
+        # transform landing zone back to original slam map
+        landing_zone = transform_back_to_slam(landing_zone, self.slam_map)
 
         self._move_ras_to(landing_zone)
 
