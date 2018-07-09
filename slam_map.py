@@ -56,12 +56,14 @@ class SlamMap():
         np_map = np.true_divide(np_map, amax)
 
         # downsample to obtain the same resolution as the heatmap
-        # transform origin
         heatmap_resolution = self.config.map_resolution
         slam_resolution = self.resolution
+        resolution_multiplier = slam_resolution / heatmap_resolution
+        np_map = scipy.misc.imresize(np_map, resolution_multiplier)
 
-        # downsample map
-        np_map = scipy.misc.imresize(np_map, slam_resolution / heatmap_resolution)
+        self.origin = tuple(i / heatmap_resolution for i in self.origin)
+
+        self.original_slam_map = np_map
 
         # rotate the map around the origin
         # do 90 increment rotaion
@@ -72,7 +74,7 @@ class SlamMap():
         np_map = np.rot90(np_map, full_rotations)
 
         # do fine rotation
-        origin = self.origin
+        origin = tuple(int(i) for i in self.origin)
         pad_x = [np_map.shape[1] - origin[0], origin[0]]
         pad_y = [np_map.shape[0] - origin[1], origin[1]]
         np_map_padded = np.pad(np_map, [pad_y, pad_x], 'constant')
