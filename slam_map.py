@@ -69,20 +69,16 @@ class SlamMap():
         # do 90 increment rotaion
         degree_rotation = self.config.slam_rotation
         full_rotations = int(degree_rotation / 90)
-        partial_rotation = degree_rotation % 90
+
+        if degree_rotation < 0:
+            # negative partial
+            partial_rotation = -(-degree_rotation % 90)
+        else:
+            # positive partial
+            partial_rotation = degree_rotation % 90
 
         np_map = np.rot90(np_map, full_rotations)
-
-        # do fine rotation
-        origin = tuple(int(i) for i in self.origin)
-        pad_x = [np_map.shape[1] - origin[0], origin[0]]
-        pad_y = [np_map.shape[0] - origin[1], origin[1]]
-        np_map_padded = np.pad(np_map, [pad_y, pad_x], 'constant')
-
-        np_map_rotated = ndimage.rotate(np_map_padded, partial_rotation, reshape=False)
-
-        np_map_final = np_map_rotated[pad_y[0] : -pad_y[1], pad_x[0] : -pad_x[1]]
-        np_map = np_map_final
+        np_map = ndimage.rotate(np_map, partial_rotation, reshape=False)
 
         return np_map
 
