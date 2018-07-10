@@ -1,5 +1,9 @@
+from __future__ import division
+
 #!/usr/bin/env python
 """ python lurking_ai.py ~/ras/src/smarthome_data/tokyo_sensors.txt ~/ras/src/lurking_navigation/config/tokyo.txt ~/ras/src/smarthome_data/tokyo_slam_map.txt 
+
+lab:=True
  """
 
 
@@ -34,7 +38,7 @@ from config import Config
 from path_map import get_point_distance
 
 TIME_TICK = 60    # in seconds
-UPDATE_RAS = 300   # in seconds
+UPDATE_RAS = 10   # in seconds
 
 
 class LurkingAI():
@@ -49,6 +53,9 @@ class LurkingAI():
         self.wa_weight = 0.1
         self.path_weight = 1500.0
         self.dynamic_heatmap = dynamic_heatmap
+        self.map_width = config.map_width
+        self.map_height = config.map_height
+        self.map_resolution = config.map_resolution
 
         self.slam_map = SlamMap(slam_data_filepath, config)
         self.reachability_map = ReachabilityMap(self.slam_map)
@@ -139,7 +146,7 @@ class LurkingAI():
     def listener(self):
         rospy.init_node('sensor_listener', anonymous=True)
         rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
-        rospy.Timer(rospy.Duration(5), self.get_landing_zone)
+        rospy.Timer(rospy.Duration(UPDATE_RAS), self.get_landing_zone)
         rospy.Subscriber("sensor_tripped", SensorPub, self.update_heatmap)
         rospy.spin()
 
@@ -187,16 +194,24 @@ class LurkingAI():
         landing_zone = transform_back_to_slam(landing_zone, self.slam_map)
 
         self._move_ras_to(landing_zone)
-
         return landing_zone
 
     def _move_ras_to(self, landing_zone):
         rospy.wait_for_service('goto_xy')
         goto_spot = rospy.ServiceProxy('goto_xy', Goto_xy)
 
-        move = goto_spot(landing_zone[0], landing_zone[1])
+        destination = self.convert_grid_to_meters(landing_zone)
+        print "ras is going to", destination
 
+        move = goto_spot(destination[0], destination[1])
         return move.response
+
+    def convert_grid_to_meters(self, gridpoint):
+        result = [0,1]
+        result[0] = gridpoint[0] * self.map_resolution   
+        result[1] = gridpoint[1] * self.map_resolution
+        print result    
+        return result
 
 
 if __name__ == "__main__":
