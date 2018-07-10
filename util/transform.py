@@ -58,6 +58,7 @@ def transform_back_to_slam(point, slam_map):
     diff = tuple(i - j for i, j in zip(point, slam_map.origin))
 
     # convert to meters
-    diff = tuple(i * slam_map.config.map_resolution for i in diff)
+    # convert to slam map points
+    diff = tuple(i * slam_map.config.map_resolution / slam_map.resolution for i in diff)
 
     return diff

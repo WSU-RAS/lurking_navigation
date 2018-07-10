@@ -200,7 +200,8 @@ class LurkingAI():
         rospy.wait_for_service('goto_xy')
         goto_spot = rospy.ServiceProxy('goto_xy', Goto_xy)
 
-        destination = self.convert_grid_to_meters(landing_zone)
+        #destination = self.convert_grid_to_meters(landing_zone)
+        destination = landing_zone
         print "ras is going to", destination
 
         move = goto_spot(destination[0], destination[1])
