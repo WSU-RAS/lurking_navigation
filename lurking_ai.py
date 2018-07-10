@@ -38,7 +38,7 @@ from config import Config
 from path_map import get_point_distance
 
 TIME_TICK = 60    # in seconds
-UPDATE_RAS = 10   # in seconds
+UPDATE_RAS = 25   # in seconds
 
 
 class LurkingAI():
