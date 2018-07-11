@@ -66,10 +66,6 @@ def main():
     # plot the reachability map
     plt.imshow(np.transpose(reachability_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
 
-    
-
-    
-
     # flip y axis
     axis = plt.gca()
     axis.set_ylim(axis.get_ylim()[::-1])

@@ -22,11 +22,11 @@ lab:=True
 import sys
 import rospy
 import numpy as np
-import matplotlib.image as mpimg
 
 from util.transform import transform_back_to_slam
 
 from dynamic_heatmap import DynamicHeatmap
+from dynamic_overlay import DynamicOverlay
 from reachability_map import ReachabilityMap
 from base_placement_algorithm import BasePlacer
 from slam_map import SlamMap
@@ -54,11 +54,11 @@ class LurkingAI():
         self.wa_weight = 0.1
         self.path_weight = 1500.0
         self.dynamic_heatmap = dynamic_heatmap
+        self.slam_data_filepath = slam_data_filepath 
+        self.config = config 
         self.map_width = config.map_width
         self.map_height = config.map_height
         self.map_resolution = config.map_resolution
-
-        self.map_image = mpimg.imread('example.jpg')
 
         self.slam_map = SlamMap(slam_data_filepath, config)
         self.reachability_map = ReachabilityMap(self.slam_map)
@@ -167,6 +167,9 @@ class LurkingAI():
             self.dynamic_heatmap.update_heatmap(data.name)
             self.historical_heatmap.update_heatmap(data.name)
 
+        overlay = DynamicOverlay(self.dynamic_heatmap, self.slam_data_filepath, self.average_point, self.config)
+        overlay.display_all()
+
         self.dynamic_heatmap.display_heatmap()
 
     """
@@ -203,7 +206,7 @@ class LurkingAI():
         rospy.wait_for_service('goto_xy')
         goto_spot = rospy.ServiceProxy('goto_xy', Goto_xy)
 
-        #destination = self.convert_grid_to_meters(landing_zone)
+        # destination = self.convert_grid_to_meters(landing_zone)
         destination = landing_zone
         print "ras is going to", destination
 
