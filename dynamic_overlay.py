@@ -40,7 +40,7 @@ class DynamicOverlay():
 
         # get the wall map
         wall_map = WallMap()
- 
+
         ### plot all the things to plot
         # plot the path map
         path_array = path_map.get_as_array()
