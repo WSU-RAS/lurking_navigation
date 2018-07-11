@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 from ras_msgs.msg import SensorPub
+
 import rospy
 #Will need to have roscore or roslaunch running first
 def process_data(sen_name, sen_msg, sen_type):

@@ -22,6 +22,7 @@ lab:=True
 import sys
 import rospy
 import numpy as np
+import matplotlib.image as mpimg
 
 from util.transform import transform_back_to_slam
 
@@ -56,6 +57,8 @@ class LurkingAI():
         self.map_width = config.map_width
         self.map_height = config.map_height
         self.map_resolution = config.map_resolution
+
+        self.map_image = mpimg.imread('example.jpg')
 
         self.slam_map = SlamMap(slam_data_filepath, config)
         self.reachability_map = ReachabilityMap(self.slam_map)
