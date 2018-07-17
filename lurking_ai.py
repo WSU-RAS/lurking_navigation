@@ -177,7 +177,7 @@ class LurkingAI():
         # self.dynamic_heatmap.display_heatmap()   
 
     """
-        Displays the pathmap, heatmaps, weighted_average, and slam map.
+        Displays the pathmap, heatmaps, weighted_average
     """
     def _display_maps(self):
         plt.gcf().clear()
@@ -187,10 +187,8 @@ class LurkingAI():
         plt.imshow(np.transpose(np_heatmap),
                    cmap='hot', interpolation='nearest')
 
-        # plot the reachability map
-        plt.imshow(np.transpose(self.reachability_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
-
         # WEIGHTED AVERAGE 
+        # MAKE SURE IS LANDING ZONE 
         weighted_average_point = axis.plot(self.average_point[0], self.average_point[1], 'ro')
 
         # Checks if our y-axis is aligned with the origin
@@ -200,6 +198,8 @@ class LurkingAI():
         fig = plt.gcf()
         fig.show()
         fig.canvas.draw()
+
+        # also display map of best point and others like in base placement 
 
     """
         Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
