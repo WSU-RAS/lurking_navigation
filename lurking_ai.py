@@ -174,18 +174,32 @@ class LurkingAI():
         # display the other maps in relation to our heatmap 
         self._display_maps()
 
-        self.dynamic_heatmap.display_heatmap()   
+        # self.dynamic_heatmap.display_heatmap()   
 
     """
         Displays the pathmap, heatmaps, weighted_average, and slam map.
     """
     def _display_maps(self):
-        wall_map = WallMap()
-        plt.imshow(np.transpose(self.wall_map.getMap()), cmap=get_custom_colormap_green())
+        plt.gcf().clear()
+        np_heatmap = np.array(self.dynamic_heatmap.get_heatmap())
+        axis = plt.gca()
 
-        plt.figure()
-        plt.plot(range(10), 'ro-')
-        plt.show()
+        plt.imshow(np.transpose(np_heatmap),
+                   cmap='hot', interpolation='nearest')
+
+        # plot the reachability map
+        plt.imshow(np.transpose(self.reachability_map.map), cmap=get_custom_colormap_blue(), interpolation='nearest')
+
+        # WEIGHTED AVERAGE 
+        weighted_average_point = axis.plot(self.average_point[0], self.average_point[1], 'ro')
+
+        # Checks if our y-axis is aligned with the origin
+        if (axis.get_ylim()[0] > axis.get_ylim()[1]):
+            axis.set_ylim(axis.get_ylim()[::-1])
+
+        fig = plt.gcf()
+        fig.show()
+        fig.canvas.draw()
 
     """
         Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
@@ -235,35 +249,35 @@ class LurkingAI():
         print result    
         return result
 
-    def get_custom_colormap_green():
-        cdict = \
-                {
-                    'red': ((0.0, 0.0, 0.0),
-                            (1.0, 0.0, 0.0)),
-                    'green': ((0.0, 0.0, 0.0),
-                            (1.0, 1.0, 1.0)),
-                    'blue': ((0.0, 0.0, 0.0),
-                            (1.0, 0.5, 0.5)),
-                    'alpha': ((0.0, 0.0, 0.0),
-                            (0.1, 1.0, 1.0),
-                            (1.0, 1.0, 1.0))
-                }
-        return LinearSegmentedColormap('alpha_red', cdict)
+def get_custom_colormap_green():
+    cdict = \
+            {
+                'red': ((0.0, 0.0, 0.0),
+                        (1.0, 0.0, 0.0)),
+                'green': ((0.0, 0.0, 0.0),
+                        (1.0, 1.0, 1.0)),
+                'blue': ((0.0, 0.0, 0.0),
+                        (1.0, 0.5, 0.5)),
+                'alpha': ((0.0, 0.0, 0.0),
+                        (0.1, 1.0, 1.0),
+                        (1.0, 1.0, 1.0))
+            }
+    return LinearSegmentedColormap('alpha_red', cdict)
 
-    def get_custom_colormap_blue():
-        cdict = \
-                {
-                    'red': ((0.0, 0.0, 0.0),
-                            (1.0, 0.0, 0.0)),
-                    'green': ((0.0, 0.0, 0.0),
-                            (1.0, 0.0, 0.0)),
-                    'blue': ((0.0, 0.0, 0.0),
-                            (1.0, 1.0, 1.0)),
-                    'alpha': ((0.0, 0.0, 0.0),
-                            (0.1, 1.0, 1.0),
-                            (1.0, 1.0, 1.0))
-                }
-        return LinearSegmentedColormap('alpha_red', cdict)
+def get_custom_colormap_blue():
+    cdict = \
+            {
+                'red': ((0.0, 0.0, 0.0),
+                        (1.0, 0.0, 0.0)),
+                'green': ((0.0, 0.0, 0.0),
+                        (1.0, 0.0, 0.0)),
+                'blue': ((0.0, 0.0, 0.0),
+                        (1.0, 1.0, 1.0)),
+                'alpha': ((0.0, 0.0, 0.0),
+                        (0.1, 1.0, 1.0),
+                        (1.0, 1.0, 1.0))
+            }
+    return LinearSegmentedColormap('alpha_red', cdict)
 
 
 if __name__ == "__main__":
