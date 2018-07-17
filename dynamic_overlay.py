@@ -20,6 +20,9 @@ class DynamicOverlay():
         #sensor_map_filepath = sys.argv[3]
         #config_filepath = sys.argv[4]
 
+        # Clears the screen from the last time we called this 
+        plt.gcf().clear()
+
         # get slam map
         slam_map = SlamMap(slam_data_filepath, config)
 
@@ -37,14 +40,19 @@ class DynamicOverlay():
 
         # get the wall map
         wall_map = WallMap()
-
+ 
         ### plot all the things to plot
         # plot the path map
         path_array = path_map.get_as_array()
         #HIDDEN plt.imshow(np.transpose(path_array), cmap='hot', interpolation='nearest')
 
         # plot the heatmap
-        #HIDDEN plt.imshow(np.transpose(dynamic_heatmap.get_heatmap_array()), cmap=get_custom_colormap_blue(), interpolation='nearest')
+        plt.imshow(np.transpose(dynamic_heatmap.get_heatmap()), cmap=get_custom_colormap_blue(), interpolation='nearest')
+        # np_heatmap = np.array(dynamic_heatmap.get_heatmap())
+        # axis = plt.gca()
+
+        # plt.imshow(np.transpose(np_heatmap),
+        #           cmap='hot', interpolation='nearest')
 
         # plot the slam map
         #HIDDEN plt.imshow(np.transpose(slam_map.map), cmap=get_custom_colormap_green(), interpolation='nearest')

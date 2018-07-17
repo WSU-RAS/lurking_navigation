@@ -31,15 +31,18 @@ from reachability_map import ReachabilityMap
 from base_placement_algorithm import BasePlacer
 from slam_map import SlamMap
 from path_map import PathMap
+import matplotlib.pyplot as plt
 from weighted_average import WeightedAverage
 from ras_msgs.msg import SensorPub
 from ras_msgs.srv import Goto_xy
 from config import Config
+from wall_map import WallMap
+from matplotlib.colors import LinearSegmentedColormap
 
 from path_map import get_point_distance
 
-TIME_TICK = 60    # in seconds
-UPDATE_RAS = 25   # in seconds
+TIME_TICK = 3    # in seconds
+UPDATE_RAS = 3   # in seconds
 
 
 class LurkingAI():
@@ -53,13 +56,14 @@ class LurkingAI():
         self.slam_weight = 1.0
         self.wa_weight = 0.1
         self.path_weight = 1500.0
-        self.dynamic_heatmap = dynamic_heatmap
-        self.slam_data_filepath = slam_data_filepath 
+
         self.config = config 
         self.map_width = config.map_width
         self.map_height = config.map_height
         self.map_resolution = config.map_resolution
 
+        self.dynamic_heatmap = dynamic_heatmap
+        self.slam_data_filepath = slam_data_filepath 
         self.slam_map = SlamMap(slam_data_filepath, config)
         self.reachability_map = ReachabilityMap(self.slam_map)
         self.simulated = simulated
@@ -71,7 +75,7 @@ class LurkingAI():
             self.historical_heatmap).get_as_array()
 
         if simulated is False:
-            self.listener()
+            self.listener()     
 
     def _build_map(self):
         # find the value of each point
@@ -167,10 +171,21 @@ class LurkingAI():
             self.dynamic_heatmap.update_heatmap(data.name)
             self.historical_heatmap.update_heatmap(data.name)
 
-        overlay = DynamicOverlay(self.dynamic_heatmap, self.slam_data_filepath, self.average_point, self.config)
-        overlay.display_all()
+        # display the other maps in relation to our heatmap 
+        self._display_maps()
 
-        self.dynamic_heatmap.display_heatmap()
+        self.dynamic_heatmap.display_heatmap()   
+
+    """
+        Displays the pathmap, heatmaps, weighted_average, and slam map.
+    """
+    def _display_maps(self):
+        wall_map = WallMap()
+        plt.imshow(np.transpose(self.wall_map.getMap()), cmap=get_custom_colormap_green())
+
+        plt.figure()
+        plt.plot(range(10), 'ro-')
+        plt.show()
 
     """
         Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
@@ -219,6 +234,36 @@ class LurkingAI():
         result[1] = gridpoint[1] * self.map_resolution
         print result    
         return result
+
+    def get_custom_colormap_green():
+        cdict = \
+                {
+                    'red': ((0.0, 0.0, 0.0),
+                            (1.0, 0.0, 0.0)),
+                    'green': ((0.0, 0.0, 0.0),
+                            (1.0, 1.0, 1.0)),
+                    'blue': ((0.0, 0.0, 0.0),
+                            (1.0, 0.5, 0.5)),
+                    'alpha': ((0.0, 0.0, 0.0),
+                            (0.1, 1.0, 1.0),
+                            (1.0, 1.0, 1.0))
+                }
+        return LinearSegmentedColormap('alpha_red', cdict)
+
+    def get_custom_colormap_blue():
+        cdict = \
+                {
+                    'red': ((0.0, 0.0, 0.0),
+                            (1.0, 0.0, 0.0)),
+                    'green': ((0.0, 0.0, 0.0),
+                            (1.0, 0.0, 0.0)),
+                    'blue': ((0.0, 0.0, 0.0),
+                            (1.0, 1.0, 1.0)),
+                    'alpha': ((0.0, 0.0, 0.0),
+                            (0.1, 1.0, 1.0),
+                            (1.0, 1.0, 1.0))
+                }
+        return LinearSegmentedColormap('alpha_red', cdict)
 
 
 if __name__ == "__main__":
