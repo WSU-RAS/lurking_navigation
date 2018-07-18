@@ -6,7 +6,6 @@ from __future__ import division
 lab:=True
  """
 
-
 """
     LurkingAI listens to sensor data and uses it to create a DynamicHeatmap
     object, acquire a weighted average, and create a path map.
@@ -44,39 +43,40 @@ from path_map import get_point_distance
 TIME_TICK = 3    # in seconds
 UPDATE_RAS = 3   # in seconds
 
-
 class LurkingAI():
     """
         Subscribes to sensor data and publishes a landing location for Ras. 
     """
-
-    def __init__(self, dynamic_heatmap, slam_data_filepath, config, simulated=False):
-        self.map = None
+    def __init__(self, dynamic_heatmap, slam_data_filepath, config, simulated=False, display_all=False):
         self.average_point = (0, 0)
-        self.landing_zone = (0,0)
-        self.slam_weight = 1.0
-        self.wa_weight = 0.1
-        self.path_weight = 1500.0
+        self.landing_zone  = (0, 0)
+        self.slam_weight   = 1.0
+        self.wa_weight     = 0.1
+        self.path_weight   = 1500.0
+        self.map           = None
 
-        self.config = config 
-        self.map_width = config.map_width
-        self.map_height = config.map_height
+        self.config         = config
+        self.map_width      = config.map_width
+        self.map_height     = config.map_height
         self.map_resolution = config.map_resolution
 
-        self.dynamic_heatmap = dynamic_heatmap
-        self.slam_data_filepath = slam_data_filepath 
-        self.slam_map = SlamMap(slam_data_filepath, config)
-        self.reachability_map = ReachabilityMap(self.slam_map)
-        self.simulated = simulated
-        self.path_map_array = PathMap(self.dynamic_heatmap).get_as_array()
+        self.dynamic_heatmap    = dynamic_heatmap
+        self.slam_map           = SlamMap(slam_data_filepath, config)
+        self.reachability_map   = ReachabilityMap(self.slam_map)
+        self.path_map_array     = PathMap(self.dynamic_heatmap).get_as_array()
 
         # The historical heatmap doesn't decay values over time
         self.historical_heatmap = DynamicHeatmap(sensor_list_filepath, config)
         self.historical_pathmap = PathMap(
             self.historical_heatmap).get_as_array()
 
+        # Toggles whether we display everything or show the placement map only
+        self.display_all = display_all
+
+        # Toggles whether we pull data from a historical file (Simulated) or from the real world
+        self.simulated = simulated
         if simulated is False:
-            self.listener()     
+            self.listener()
 
     def _build_map(self):
         # find the value of each point
@@ -98,6 +98,7 @@ class LurkingAI():
         placement_map = self.apply_reachability_mask(placement_map)
 
         self.map = placement_map
+        return placement_map
 
     def apply_reachability_mask(self, placement_map):
         reachability_map = self.reachability_map.map
@@ -150,7 +151,6 @@ class LurkingAI():
     """
         Creates a listener node that acquires sensor data continuously. 
     """
-
     def listener(self):
         rospy.init_node('sensor_listener', anonymous=True)
         rospy.Timer(rospy.Duration(TIME_TICK), self.timer_callback)
@@ -159,9 +159,8 @@ class LurkingAI():
         rospy.spin()
 
     """
-        Inform the heatmap handler that sensor was triggered
+        Informs the heatmap handler that sensor was triggered
     """
-
     def update_heatmap(self, data):
         if self.simulated:
             self.dynamic_heatmap.update_heatmap(data.sensor_name)
@@ -172,40 +171,35 @@ class LurkingAI():
             self.dynamic_heatmap.update_heatmap(data.name)
             self.historical_heatmap.update_heatmap(data.name)
 
-        #print np.amax(self.historical_pathmap) 
+        if self.display_all:
+            self._display_maps()
+        else:
+            self._display_placement_map()
 
-        # display the other maps in relation to our heatmap 
-        self._display_maps()
-
-        # self.dynamic_heatmap.display_heatmap()   
+        # Print the heatmap only
+        # self.dynamic_heatmap.display_heatmap()
 
     """
-        Displays the pathmap, heatmaps, weighted_average
+        Displays the pathmap, heatmap, landing zone, and weighted_average.
+        Landing zone is GREEN and the weighted average is in BLUE. 
     """
     def _display_maps(self):
         plt.gcf().clear()
         np_heatmap = np.array(self.dynamic_heatmap.get_heatmap())
         axis = plt.gca()
 
-
-        #path_map = PathMap(self.dynamic_heatmap)
-        #path_array = path_map.get_as_array()
-
-        #for i in self.path_map_array:
         pathmap = PathMap(self.dynamic_heatmap).get_as_array()
-
-        #print np.amax(pathmap)
-        
-
-        plt.imshow(np.transpose(pathmap), cmap='magma', interpolation='nearest')
-
+        plt.imshow(np.transpose(pathmap), cmap='magma',
+                   interpolation='nearest')
 
         plt.imshow(np.transpose(np_heatmap),
-                   cmap=get_custom_colormap_green(), interpolation='nearest')
+                   cmap=get_custom_colormap_red(), interpolation='nearest')
 
-        # WEIGHTED AVERAGE 
-        # MAKE SURE IS LANDING ZONE 
-        weighted_average_point = axis.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
+        # Display weighted average of the heatmap
+        axis.plot(self.average_point[0], self.average_point[1], 'bo')
+
+        # Display landing zone
+        axis.plot(self.landing_zone[0], self.landing_zone[1], 'go')
 
         # Checks if our y-axis is aligned with the origin
         if (axis.get_ylim()[0] > axis.get_ylim()[1]):
@@ -215,12 +209,32 @@ class LurkingAI():
         fig.show()
         fig.canvas.draw()
 
-        # also display map of best point and others like in base placement 
+    """
+        Displays the map that is built to decide on an optimal point. 
+    """
+    def _display_placement_map(self):
+        plt.gcf().clear()
+        axis = plt.gca()
+
+        placement_map = np.array(self.map)
+
+        plt.imshow(np.transpose(self.map), cmap='magma',
+                   interpolation='nearest')
+
+        # Display landing zone
+        axis.plot(self.landing_zone[0], self.landing_zone[1], 'go')
+
+        # Checks if our y-axis is aligned with the origin
+        if (axis.get_ylim()[0] > axis.get_ylim()[1]):
+            axis.set_ylim(axis.get_ylim()[::-1])
+
+        fig = plt.gcf()
+        fig.show()
+        fig.canvas.draw()
 
     """
         Every TIME_TICK, decay the heatmap by the HEATMAP_DECAY_STRENGTH. 
     """
-
     def timer_callback(self, data=None):
         self.dynamic_heatmap.decay_heatmap()
 
@@ -228,7 +242,6 @@ class LurkingAI():
         Using the heatmap, pathmap, and weighted average, returns an "optimal"
         landing zone for Ras at this current moment. 
     """
-
     def get_landing_zone(self, data=None):
         # Use the dynamic_heatmap to grab the weighted average
         weighted_average = WeightedAverage(
@@ -242,10 +255,11 @@ class LurkingAI():
         self.dynamic_heatmap.mark_spot_on_map(self.landing_zone)
 
         # transform landing zone back to original slam map
-        self.landing_zone = transform_back_to_slam(self.landing_zone, self.slam_map)
+        # self.landing_zone = transform_back_to_slam(self.landing_zone, self.slam_map)
 
-        self._move_ras_to(self.landing_zone)
-        return self.landing_zone
+        self._move_ras_to(transform_back_to_slam(
+            self.landing_zone, self.slam_map))
+        return transform_back_to_slam(self.landing_zone, self.slam_map)
 
     def _move_ras_to(self, landing_zone):
         rospy.wait_for_service('goto_xy')
@@ -253,45 +267,63 @@ class LurkingAI():
 
         # destination = self.convert_grid_to_meters(landing_zone)
         destination = landing_zone
-        print "ras is going to", destination
+        print "RAS is heading towards", destination
 
         move = goto_spot(destination[0], destination[1])
         return move.response
 
     def convert_grid_to_meters(self, gridpoint):
-        result = [0,1]
-        result[0] = gridpoint[0] * self.map_resolution   
+        result = [0, 1]
+        result[0] = gridpoint[0] * self.map_resolution
         result[1] = gridpoint[1] * self.map_resolution
         return result
 
+
 def get_custom_colormap_green():
     cdict = \
-            {
-                'red': ((0.0, 0.0, 0.0),
-                        (1.0, 0.0, 0.0)),
-                'green': ((0.0, 0.0, 0.0),
-                        (1.0, 1.0, 1.0)),
-                'blue': ((0.0, 0.0, 0.0),
-                        (1.0, 0.5, 0.5)),
-                'alpha': ((0.0, 0.0, 0.0),
-                        (0.1, 1.0, 1.0),
-                        (1.0, 1.0, 1.0))
-            }
+        {
+            'red': ((0.0, 0.0, 0.0),
+                    (1.0, 0.0, 0.0)),
+            'green': ((0.0, 0.0, 0.0),
+                      (1.0, 1.0, 1.0)),
+            'blue': ((0.0, 0.0, 0.0),
+                     (1.0, 0.5, 0.5)),
+            'alpha': ((0.0, 0.0, 0.0),
+                      (0.1, 1.0, 1.0),
+                      (1.0, 1.0, 1.0))
+        }
     return LinearSegmentedColormap('alpha_red', cdict)
+
 
 def get_custom_colormap_blue():
     cdict = \
-            {
-                'red': ((0.0, 0.0, 0.0),
-                        (1.0, 0.0, 0.0)),
-                'green': ((0.0, 0.0, 0.0),
-                        (1.0, 0.0, 0.0)),
-                'blue': ((0.0, 0.0, 0.0),
-                        (1.0, 1.0, 1.0)),
-                'alpha': ((0.0, 0.0, 0.0),
-                        (0.1, 1.0, 1.0),
-                        (1.0, 1.0, 1.0))
-            }
+        {
+            'red': ((0.0, 0.0, 0.0),
+                    (1.0, 0.0, 0.0)),
+            'green': ((0.0, 0.0, 0.0),
+                      (1.0, 0.0, 0.0)),
+            'blue': ((0.0, 0.0, 0.0),
+                     (1.0, 1.0, 1.0)),
+            'alpha': ((0.0, 0.0, 0.0),
+                      (0.1, 1.0, 1.0),
+                      (1.0, 1.0, 1.0))
+        }
+    return LinearSegmentedColormap('alpha_red', cdict)
+
+
+def get_custom_colormap_red():
+    cdict = \
+        {
+            'red': ((0.0, 0.0, 0.0),
+                    (1.0, 1.0, 1.0)),
+            'green': ((0.0, 0.0, 0.0),
+                      (1.0, 0.0, 0.0)),
+            'blue': ((0.0, 0.0, 0.0),
+                     (1.0, 0.0, 0.0)),
+            'alpha': ((0.0, 0.0, 0.0),
+                      (0.1, 1.0, 1.0),
+                      (1.0, 1.0, 1.0))
+        }
     return LinearSegmentedColormap('alpha_red', cdict)
 
 

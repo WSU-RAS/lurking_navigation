@@ -70,8 +70,6 @@ class PathMap:
                 # convert thickness to correc
                 path_map = draw_weighted_line(path_map, p1, p2, thickness, weight)
 
-
-        print np.amax(path_map)
         return path_map
 
     def display_as_heatmap(self):
@@ -85,7 +83,6 @@ class PathMap:
 
     def _build_graph(self):
         point_map = self.heatmap.get_point_map() 
-        print point_map
 
         # build each point
         for point, value in point_map.iteritems():

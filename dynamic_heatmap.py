@@ -120,7 +120,6 @@ class DynamicHeatmap(Heatmap):
                     if self.heatmap[x_index][y_index] != 0:
 
                         point = self.convert_grid_to_meters((x_index, y_index))
-                        print point 
                         point_map[point] = self.heatmap[x_index][y_index]
 
         return point_map
