@@ -111,3 +111,23 @@ class DynamicHeatmap(Heatmap):
                         sum)
 
         return normalized_heatmap
+
+    def get_point_map(self):
+        point_map = {}
+
+        for x_index in range(len(self.heatmap)):
+                for y_index in range(len(self.heatmap[0])):
+                    if self.heatmap[x_index][y_index] != 0:
+
+                        point = self.convert_grid_to_meters((x_index, y_index))
+                        print point 
+                        point_map[point] = self.heatmap[x_index][y_index]
+
+        return point_map
+
+    def convert_grid_to_meters(self, gridpoint):
+        result = [0,1]
+        result[0] = gridpoint[0] * self.map_resolution   
+        result[1] = gridpoint[1] * self.map_resolution
+        return (result[0], result[1])
+        

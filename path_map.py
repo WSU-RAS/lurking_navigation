@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from heatmap import Heatmap
-from static_heatmap import StaticHeatmap
+from dynamic_heatmap import DynamicHeatmap
 from config import Config
 
 class PathMap:
@@ -70,6 +70,8 @@ class PathMap:
                 # convert thickness to correc
                 path_map = draw_weighted_line(path_map, p1, p2, thickness, weight)
 
+
+        print np.amax(path_map)
         return path_map
 
     def display_as_heatmap(self):
@@ -82,7 +84,8 @@ class PathMap:
         plt.show()
 
     def _build_graph(self):
-        point_map = self.heatmap.point_map
+        point_map = self.heatmap.get_point_map() 
+        print point_map
 
         # build each point
         for point, value in point_map.iteritems():

@@ -68,6 +68,9 @@ class StaticHeatmap(Heatmap):
             new_value = value / float(sum)
             self.point_map[key] = new_value
 
+    def get_point_map(self):
+        return self.point_map
+
 if __name__ == "__main__":
     # Take in the file we will construct a heatmap from 
     sensor_list_filepath = sys.argv[1]

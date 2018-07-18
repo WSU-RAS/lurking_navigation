@@ -53,6 +53,7 @@ class LurkingAI():
     def __init__(self, dynamic_heatmap, slam_data_filepath, config, simulated=False):
         self.map = None
         self.average_point = (0, 0)
+        self.landing_zone = (0,0)
         self.slam_weight = 1.0
         self.wa_weight = 0.1
         self.path_weight = 1500.0
@@ -171,6 +172,8 @@ class LurkingAI():
             self.dynamic_heatmap.update_heatmap(data.name)
             self.historical_heatmap.update_heatmap(data.name)
 
+        #print np.amax(self.historical_pathmap) 
+
         # display the other maps in relation to our heatmap 
         self._display_maps()
 
@@ -184,12 +187,25 @@ class LurkingAI():
         np_heatmap = np.array(self.dynamic_heatmap.get_heatmap())
         axis = plt.gca()
 
+
+        #path_map = PathMap(self.dynamic_heatmap)
+        #path_array = path_map.get_as_array()
+
+        #for i in self.path_map_array:
+        pathmap = PathMap(self.dynamic_heatmap).get_as_array()
+
+        #print np.amax(pathmap)
+        
+
+        plt.imshow(np.transpose(pathmap), cmap='magma', interpolation='nearest')
+
+
         plt.imshow(np.transpose(np_heatmap),
-                   cmap='hot', interpolation='nearest')
+                   cmap=get_custom_colormap_green(), interpolation='nearest')
 
         # WEIGHTED AVERAGE 
         # MAKE SURE IS LANDING ZONE 
-        weighted_average_point = axis.plot(self.average_point[0], self.average_point[1], 'ro')
+        weighted_average_point = axis.plot(self.landing_zone[0], self.landing_zone[1], 'bo')
 
         # Checks if our y-axis is aligned with the origin
         if (axis.get_ylim()[0] > axis.get_ylim()[1]):
@@ -218,18 +234,18 @@ class LurkingAI():
         weighted_average = WeightedAverage(
             self.dynamic_heatmap).get_weighted_average_point()
         self.average_point = weighted_average
-        landing_zone = weighted_average
+        self.landing_zone = weighted_average
 
         self._build_map()
 
-        landing_zone = self.get_best_point()
-        self.dynamic_heatmap.mark_spot_on_map(landing_zone)
+        self.landing_zone = self.get_best_point()
+        self.dynamic_heatmap.mark_spot_on_map(self.landing_zone)
 
         # transform landing zone back to original slam map
-        landing_zone = transform_back_to_slam(landing_zone, self.slam_map)
+        self.landing_zone = transform_back_to_slam(self.landing_zone, self.slam_map)
 
-        self._move_ras_to(landing_zone)
-        return landing_zone
+        self._move_ras_to(self.landing_zone)
+        return self.landing_zone
 
     def _move_ras_to(self, landing_zone):
         rospy.wait_for_service('goto_xy')
@@ -246,7 +262,6 @@ class LurkingAI():
         result = [0,1]
         result[0] = gridpoint[0] * self.map_resolution   
         result[1] = gridpoint[1] * self.map_resolution
-        print result    
         return result
 
 def get_custom_colormap_green():
