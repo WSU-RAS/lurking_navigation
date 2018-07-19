@@ -94,7 +94,7 @@ class LurkingAI():
         amax = np.amax(placement_map)
         placement_map = np.true_divide(placement_map, amax)
 
-        # apply reachability mask
+        # apply reachability mask that limits where RAS can go.
         placement_map = self.apply_reachability_mask(placement_map)
 
         self.map = placement_map
