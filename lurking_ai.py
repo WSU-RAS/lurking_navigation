@@ -40,19 +40,24 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from path_map import get_point_distance
 
-TIME_TICK = 3    # in seconds
-UPDATE_RAS = 3   # in seconds
+#TIME_TICK = 60    # in seconds
+#UPDATE_RAS = 60   # in seconds
+
+TIME_TICK = 60    # in seconds
+UPDATE_RAS = 60   # in seconds
 
 class LurkingAI():
     """
         Subscribes to sensor data and publishes a landing location for Ras. 
     """
-    def __init__(self, dynamic_heatmap, slam_data_filepath, config, simulated=False, display_all=False):
+    def __init__(self, dynamic_heatmap, slam_data_filepath, sensor_list_filepath,
+                 config, simulated=False, display_all=False):
         self.average_point = (0, 0)
         self.landing_zone  = (0, 0)
         self.slam_weight   = 1.0
-        self.wa_weight     = 0.1
-        self.path_weight   = 1500.0
+        self.wa_weight     = 1.0
+        self.path_weight   = 16.0
+        self.wall_weight   = 0.5
         self.map           = None
 
         self.config         = config
@@ -64,6 +69,7 @@ class LurkingAI():
         self.slam_map           = SlamMap(slam_data_filepath, config)
         self.reachability_map   = ReachabilityMap(self.slam_map)
         self.path_map_array     = PathMap(self.dynamic_heatmap).get_as_array()
+        self.wall_map           = WallMap(self.slam_map).getMap()
 
         # The historical heatmap doesn't decay values over time
         self.historical_heatmap = DynamicHeatmap(sensor_list_filepath, config)
@@ -81,6 +87,10 @@ class LurkingAI():
     def _build_map(self):
         # find the value of each point
         placement_map = np.zeros_like(self.dynamic_heatmap.get_heatmap())
+
+        # update the historical pathmap
+        self.historical_pathmap = PathMap(
+            self.historical_heatmap).get_as_array()
 
         for i in range(placement_map.shape[0]):
             for j in range(placement_map.shape[1]):
@@ -101,6 +111,8 @@ class LurkingAI():
         return placement_map
 
     def apply_reachability_mask(self, placement_map):
+        """ applies the masks to the algorithm so we only evaluate meaningful places
+        """
         reachability_map = self.reachability_map.map
 
         masked_map = np.zeros_like(reachability_map, dtype="float")
@@ -128,6 +140,9 @@ class LurkingAI():
 
         # get path map value
         path_value = -self.historical_pathmap[i, j] * self.path_weight
+
+        # get the wall map value
+        wall_value = self.wall_map[i, j] * self.wall_weight
 
         return wa_value + path_value
 
@@ -162,19 +177,19 @@ class LurkingAI():
         Informs the heatmap handler that sensor was triggered
     """
     def update_heatmap(self, data):
-        if self.simulated:
+        if self.simulated is True:
             self.dynamic_heatmap.update_heatmap(data.sensor_name)
             self.historical_heatmap.update_heatmap(data.sensor_name)
-            self.historical_pathmap = PathMap(
-                self.historical_heatmap).get_as_array()
         else:
             self.dynamic_heatmap.update_heatmap(data.name)
             self.historical_heatmap.update_heatmap(data.name)
 
+        """
         if self.display_all:
             self._display_maps()
         else:
             self._display_placement_map()
+        """
 
         # Print the heatmap only
         # self.dynamic_heatmap.display_heatmap()
@@ -188,10 +203,16 @@ class LurkingAI():
         np_heatmap = np.array(self.dynamic_heatmap.get_heatmap())
         axis = plt.gca()
 
-        pathmap = PathMap(self.dynamic_heatmap).get_as_array()
+        # display the path map
+        pathmap = self.historical_pathmap
         plt.imshow(np.transpose(pathmap), cmap='magma',
                    interpolation='nearest')
 
+        # display the slam map
+        plt.imshow(np.transpose(self.slam_map.map),
+                   cmap=get_custom_colormap_green(), interpolation='nearest')
+
+        # display the heatmap
         plt.imshow(np.transpose(np_heatmap),
                    cmap=get_custom_colormap_red(), interpolation='nearest')
 
@@ -218,7 +239,7 @@ class LurkingAI():
 
         placement_map = np.array(self.map)
 
-        plt.imshow(np.transpose(self.map), cmap='magma',
+        plt.imshow(np.transpose(self.map), cmap='hot',
                    interpolation='nearest')
 
         # Display landing zone
@@ -257,9 +278,13 @@ class LurkingAI():
         # transform landing zone back to original slam map
         # self.landing_zone = transform_back_to_slam(self.landing_zone, self.slam_map)
 
-        self._move_ras_to(transform_back_to_slam(
-            self.landing_zone, self.slam_map))
-        return transform_back_to_slam(self.landing_zone, self.slam_map)
+        if self.simulated is False: 
+            self._move_ras_to(transform_back_to_slam(
+                self.landing_zone, self.slam_map))
+            return transform_back_to_slam(self.landing_zone, self.slam_map)
+        else:
+            return self.landing_zone
+
 
     def _move_ras_to(self, landing_zone):
         rospy.wait_for_service('goto_xy')
@@ -338,4 +363,5 @@ if __name__ == "__main__":
     dynamic_heatmap = DynamicHeatmap(sensor_list_filepath, config)
 
     # Create a LurkingAI object that sends information to the heatmap
-    lurking_ai = LurkingAI(dynamic_heatmap, slam_map_filepath, config)
+    lurking_ai = LurkingAI(dynamic_heatmap, slam_map_filepath, 
+                           sensor_list_filepath, config)
