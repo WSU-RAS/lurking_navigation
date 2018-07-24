@@ -9,6 +9,7 @@ import math
 import random
 import sys
 import time
+import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +19,8 @@ from config import Config
 from heatmap import Heatmap
 from ras_msgs.msg import SensorPub
 
-HEATMAP_DECAY_STRENGTH = (1 - 0.0231049060187)  # 50% every 30 minutes
+HEATMAP_DECAY_STRENGTH = (1 - 0.0231049060187)  # 50% every 30 minutes 
+                                                # when appplied every minute
 
 class DynamicHeatmap(Heatmap):
     def __init__(self, sensor_list_filepath, config):
@@ -51,7 +53,6 @@ class DynamicHeatmap(Heatmap):
     def decay_heatmap(self):
         for x_index in range(len(self.heatmap)):
             for y_index in range(len(self.heatmap[0])):
-                # currently 0.8
                 self.heatmap[x_index][y_index] *= HEATMAP_DECAY_STRENGTH
 
     """
@@ -95,7 +96,7 @@ class DynamicHeatmap(Heatmap):
     """
 
     def get_normalized_heatmap(self):
-        normalized_heatmap = self.heatmap  # duplicate the heatmap
+        normalized_heatmap = copy.deepcopy(self.heatmap)  # duplicate the heatmap
 
         # Sum all the values in the heatmap
         sum = 0
