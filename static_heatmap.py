@@ -68,6 +68,9 @@ class StaticHeatmap(Heatmap):
             new_value = value / float(sum)
             self.point_map[key] = new_value
 
+    def get_normalized_heatmap(self):
+        return self.get_heatmap_array()
+
     def get_point_map(self):
         return self.point_map
 
