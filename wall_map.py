@@ -17,19 +17,12 @@ from config import Config
 
 class WallMap():
 
-    def __init__(self):
-
-        data_filepath = "smarthome_data/tokyo_slam_map.txt"
-        config_filepath = "config/tokyo.txt"
-        config = Config(config_filepath)
-        slam_map = SlamMap(data_filepath, config)
+    def __init__(self, slam_map):
         self.wf = waterfall.Waterfall(slam_map.map)
-
 
     def getMap(self):
 
         return self.wf.toNumpy()
-
 
     def displayIt(self, npmap):
         
@@ -42,6 +35,12 @@ class WallMap():
 #Testing
 if __name__ == '__main__':
 
-    wm = WallMap()
+    data_filepath = "smarthome_data/tokyo_slam_map.txt"
+    config_filepath = "config/tokyo.txt"
+    config = Config(config_filepath)
+
+    slam_map = SlamMap(data_filepath, config)
+
+    wm = WallMap(slam_map)
     newMap = wm.getMap()
     wm.displayIt(newMap)
