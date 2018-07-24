@@ -60,7 +60,7 @@ class ShortestPaths:
         """
         if self.check_bounds(start_point) is False or \
            self.check_bounds(end_point) is False:
-            return None
+            return None, None
 
         start = self.point_to_index(start_point)
         end = self.point_to_index(end_point)
