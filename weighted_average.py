@@ -39,7 +39,6 @@ class WeightedAverage():
         x_average = 0
         y_average = 0
 
-        #self.heatmap = self.heatmap.get_heatmap_array()
         self.heatmap = self.heatmap.get_normalized_heatmap()
 
         for x_index in range(len(self.heatmap)):
