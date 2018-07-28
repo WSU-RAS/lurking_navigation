@@ -63,6 +63,7 @@ class SlamMap():
 
         self.origin = tuple(i / heatmap_resolution for i in self.origin)
 
+        self.original_origin = raw_data.origin
         self.original_slam_map = np_map
 
         # rotate the map around the origin

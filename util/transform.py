@@ -39,6 +39,28 @@ def rotate_point(point, origin_point, degrees):
 
     return qx, qy
 
+def transform_point_from_slam(slam_point, slam_map):
+    """ transform a point in slam units to map units
+
+    input:
+        slam_point - tuple(float(x), float(y)) - point in meters
+        slam_map - SlamMap - slam map to transform to
+
+    """
+
+    # transform from slam origin to map origin
+    slam_origin = slam_map.original_origin 
+    point = tuple(i + j for i, j in zip(point, slam_map.origin))
+
+    # convert to map units
+    point = tuple(i / slam_map.config.map_resolution for i in slam_point)
+
+    # perform rotation
+    center = (slam_map.map.shape[0] / 2, slam_map.map.shape[1] / 2)
+    point = rotate_point(point, center, -slam_map.config.slam_rotation)
+
+    return point
+
 def transform_back_to_slam(point, slam_map):
     """ transform a point back to slam space
 
